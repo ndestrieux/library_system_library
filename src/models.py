@@ -35,6 +35,7 @@ class Book(Base):
 
 class Author(Base):
     __tablename__ = "authors"
+
     id = Column(Integer, primary_key=True)
     first_name = Column(String, nullable=False)
     middle_name = Column(String, nullable=True)
