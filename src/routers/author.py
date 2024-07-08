@@ -1,3 +1,10 @@
-from fastapi import APIRouter
+from strawberry import Schema
+from strawberry.fastapi import GraphQLRouter
 
-router = APIRouter(prefix="api/librabry/authors", tags=["authors"])
+from extensions import SQLAlchemySession
+from schema import Query
+
+schema = Schema(query=Query, extensions=[SQLAlchemySession])
+
+
+router = GraphQLRouter(schema, prefix="/api/library/authors", tags=["authors"])
