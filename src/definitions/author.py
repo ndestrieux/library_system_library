@@ -14,11 +14,11 @@ class Author:
     books: List[Annotated["Book", strawberry.lazy(".book")]]
 
     @classmethod
-    def from_instance(cls, model: AuthorModel) -> "Author":
+    def from_instance(cls, obj: AuthorModel) -> "Author":
         return cls(
-            id=model.id,
-            first_name=model.first_name,
-            middle_name=model.middle_name,
-            last_name=model.last_name,
-            books=model.books,
+            id=obj.id,
+            first_name=obj.first_name,
+            middle_name=obj.middle_name,
+            last_name=obj.last_name,
+            books=obj.books,
         )
