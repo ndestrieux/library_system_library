@@ -23,11 +23,11 @@ class Query(ABC):
         self,
         model: BaseModel,
         fields: List[SelectedField],
-        f: Optional[AuthorFilter] = None,
+        q_filter: Optional[AuthorFilter] = None,
     ):
         self.model = model
         self.fields = fields
-        self.f = f
+        self.q_filter = q_filter
         self.joins = []
 
     def _get_model_field_objs(
@@ -61,10 +61,10 @@ class Query(ABC):
         return options
 
     def _build_filter_criteria(self):
-        if not self.f:
+        if not self.q_filter:
             return []
         criterion = []
-        for k, v in self.f.__dict__.items():
+        for k, v in self.q_filter.__dict__.items():
             if k in self.RELATED_FIELDS:
                 self.joins.append(self.JOIN_DICT[k.split("_")[0]])
             if v is not strawberry.UNSET:
@@ -83,6 +83,7 @@ class Query(ABC):
 
 class AuthorQuery(Query):
     FILTER_CRITERION_DICT = {
+        "id": AuthorModel.id.like,
         "first_name": AuthorModel.first_name.ilike,
         "middle_name": AuthorModel.middle_name.ilike,
         "last_name": AuthorModel.last_name.ilike,
