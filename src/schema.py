@@ -23,3 +23,6 @@ class Query:
         db = info.context["db"]
         author = get_author_details(db, info, f)
         return Author.from_instance(author)
+
+
+schema = Schema(query=Query, mutation=Mutation, extensions=[SQLAlchemySession])
