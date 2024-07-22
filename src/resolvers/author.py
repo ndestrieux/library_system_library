@@ -9,7 +9,7 @@ from models import Author as AuthorModel
 from query_builders import AuthorQuery
 
 
-def get_authors(
+async def get_authors(
     db: Session, info: Info, f: Optional[AllAuthorFilter]
 ) -> ScalarResult[AuthorModel]:
     required_fields = info.selected_fields[0].selections
@@ -19,7 +19,9 @@ def get_authors(
     return result.scalars()
 
 
-def get_author_details(db: Session, info: Info, f: OneAuthorFilter) -> AuthorModel:
+async def get_author_details(
+    db: Session, info: Info, f: OneAuthorFilter
+) -> AuthorModel:
     required_fields = info.selected_fields[0].selections
     query_obj = AuthorQuery(required_fields, f)
     query = query_obj.build()

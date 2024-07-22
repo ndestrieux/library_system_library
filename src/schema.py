@@ -15,13 +15,13 @@ class Query:
         self, info: Info, f: Optional[AllAuthorFilter] = None
     ) -> List[Author]:
         db = info.context["db"]
-        authors = get_authors(db, info, f)
+        authors = await get_authors(db, info, f)
         return [Author.from_instance(author) for author in authors]
 
     @strawberry.field
     async def author_details(self, info: Info, f: Optional[OneAuthorFilter]) -> Author:
         db = info.context["db"]
-        author = get_author_details(db, info, f)
+        author = await get_author_details(db, info, f)
         return Author.from_instance(author)
 
 
