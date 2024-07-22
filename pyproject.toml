@@ -24,3 +24,17 @@ pytest-trio = "~0.8"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.plugins.dotenv]
+ignore = "false"
+location = "./src/.env"
+
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = ["tests"]
+trio_mode = "true"
+addopts = "-v -ra -q"
+minversion = "6.0"
+filterwarnings = ["ignore:'typing.ByteString' is deprecated and slated for removal in Python 3.14"]
