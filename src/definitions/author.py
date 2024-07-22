@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 
 import strawberry
 
@@ -9,7 +9,7 @@ from models import Author as AuthorModel
 class Author:
     id: int
     first_name: str
-    middle_name: str
+    middle_name: Optional[str]
     last_name: str
     books: List[Annotated["Book", strawberry.lazy(".book")]]
 
