@@ -1,21 +1,21 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from database import engine
 from models import Base
 from routers.author import router as author_router
 
-app = FastAPI()
 
-app.include_router(author_router)
-
-
-@app.on_event("startup")
-async def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     print("Database connected on startup")
-
-
-@app.on_event("shutdown")
-async def shutdown():
+    yield
     engine.dispose()
     print("Database disconnected on shutdown")
+
+
+app = FastAPI(lifespan=lifespan)
+
+app.include_router(author_router)
