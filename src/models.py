@@ -1,7 +1,9 @@
 import enum
+from datetime import datetime
+from typing import List, Optional
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, Table
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, ForeignKey, String, Table
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
 
@@ -23,27 +25,31 @@ book_authors = Table(
 class Book(Base):
     __tablename__ = "books"
 
-    id = Column(Integer, primary_key=True)
-    title = Column(String, nullable=False)
-    authors = relationship("Author", secondary=book_authors, back_populates="books")
-    publication_year = Column(Integer, nullable=False)
-    language = Column(Enum(LanguageChoices), nullable=True)
-    category = Column(String, nullable=True)
-    created_by = Column(String, nullable=False)
-    created_on = Column(DateTime, nullable=False)
-    last_updated_by = Column(String, nullable=False)
-    last_updated_on = Column(DateTime, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(120))
+    authors: Mapped[List["Author"]] = relationship(
+        "Author", secondary=book_authors, back_populates="books"
+    )
+    publication_year: Mapped[int]
+    language: Mapped[LanguageChoices]
+    category: Mapped[Optional[str]] = mapped_column(String(20), default=None)
+    created_by: Mapped[str] = mapped_column(String(20))
+    created_on: Mapped[datetime] = mapped_column(insert_default=datetime.now)
+    last_updated_by: Mapped[Optional[str]] = mapped_column(String(20))
+    last_updated_on: Mapped[Optional[datetime]] = mapped_column(onupdate=datetime.now)
 
 
 class Author(Base):
     __tablename__ = "authors"
 
-    id = Column(Integer, primary_key=True)
-    first_name = Column(String, nullable=False)
-    middle_name = Column(String, nullable=True)
-    last_name = Column(String, nullable=False)
-    books = relationship("Book", secondary=book_authors, back_populates="authors")
-    created_by = Column(String, nullable=False)
-    created_on = Column(DateTime, nullable=False)
-    last_updated_by = Column(String, nullable=False)
-    last_updated_on = Column(DateTime, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    first_name: Mapped[str] = mapped_column(String(120))
+    middle_name: Mapped[Optional[str]] = mapped_column(String(120), default=None)
+    last_name: Mapped[str] = mapped_column(String(120))
+    books: Mapped[List["Book"]] = relationship(
+        "Book", secondary=book_authors, back_populates="authors"
+    )
+    created_by: Mapped[str] = mapped_column(String(20))
+    created_on: Mapped[datetime] = mapped_column(insert_default=datetime.now)
+    last_updated_by: Mapped[Optional[str]] = mapped_column(String(20))
+    last_updated_on: Mapped[Optional[datetime]] = mapped_column(onupdate=datetime.now)
