@@ -3,17 +3,15 @@ from typing import List, Optional
 import strawberry
 from strawberry import Info, Schema
 
+from database.crud_factory import crud_factory
+from database.models import Author as AuthorModel
 from definitions.author import Author
 from extensions import SQLAlchemySession
-from filters.author import AllAuthorFilter, OneAuthorFilter
+from filters.author import AllAuthorFilter
 from inputs.author import AuthorCreationInput, AuthorUpdateInput
-from resolvers.author import (
-    create_author,
-    get_author_details,
-    get_authors,
-    update_author,
-)
 from utils import get_requester
+
+AuthorCrud = crud_factory(AuthorModel)
 
 
 @strawberry.type
@@ -23,13 +21,15 @@ class Query:
         self, info: Info, f: Optional[AllAuthorFilter] = None
     ) -> List[Author]:
         db = info.context["db"]
-        authors = await get_authors(db, info, f)
+        required_fields = info.selected_fields[0].selections
+        authors = AuthorCrud.get_many_by_values(db, required_fields, f)
         return [Author.from_instance(author) for author in authors]
 
     @strawberry.field
-    async def author_details(self, info: Info, f: Optional[OneAuthorFilter]) -> Author:
+    async def author_details(self, info: Info, author_id: int) -> Author:
         db = info.context["db"]
-        author = await get_author_details(db, info, f)
+        required_fields = info.selected_fields[0].selections
+        author = AuthorCrud.get_one_by_id(db, author_id, fields=required_fields)
         return Author.from_instance(author)
 
 
@@ -40,7 +40,7 @@ class Mutation:
         db = info.context["db"]
         requester = get_requester(info)
         data_dict = data.asdict() | {"created_by": requester}
-        author = await create_author(db, data_dict)
+        author = AuthorCrud.create(db, data_dict)
         return Author.from_instance(author)
 
     @strawberry.mutation
@@ -50,8 +50,14 @@ class Mutation:
         db = info.context["db"]
         requester = get_requester(info)
         data_dict = data.asdict() | {"last_updated_by": requester}
-        author = await update_author(db, author_id, data_dict)
+        author = AuthorCrud.update_by_id(db, data_dict, author_id)
         return Author.from_instance(author)
+
+    @strawberry.mutation
+    async def remove_author(self, info: Info, author_id: int) -> bool:
+        db = info.context["db"]
+        result = AuthorCrud.remove_by_id(db, author_id)
+        return result
 
 
 schema = Schema(query=Query, mutation=Mutation, extensions=[SQLAlchemySession])

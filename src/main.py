@@ -2,8 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from database import engine
-from models import Base
+from database.db_conf import Base, engine
 from routers.author import router as author_router
 
 

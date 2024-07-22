@@ -1,6 +1,6 @@
 from strawberry.extensions import SchemaExtension
 
-from database import SessionLocal
+from database.db_conf import SessionLocal
 
 
 class SQLAlchemySession(SchemaExtension):

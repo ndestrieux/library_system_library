@@ -2,7 +2,7 @@ from typing import Annotated, List, Optional
 
 import strawberry
 
-from models import Author as AuthorModel
+from database.models import Author as AuthorModel
 
 
 @strawberry.type

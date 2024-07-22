@@ -5,7 +5,7 @@ from sqlalchemy.pool import StaticPool
 from starlette.requests import Request
 from strawberry.extensions import SchemaExtension
 
-from database import Base
+from src.database.db_conf import Base
 
 
 def pytest_addoption(parser):

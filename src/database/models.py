@@ -1,11 +1,13 @@
 import enum
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, TypeAlias
 
 from sqlalchemy import Column, ForeignKey, String, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database import Base
+from database.db_conf import Base
+
+Model: TypeAlias = Base
 
 
 class LanguageChoices(enum.Enum):
