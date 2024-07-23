@@ -1,9 +1,8 @@
 import pytest
 from strawberry import Schema
 
-from database.models import Author as AuthorModel
 from database.validators.author import AuthorCreateValidator
-from src.database.crud_factory import crud_factory
+from src.database.crud_factory import AuthorSQLCrud
 from src.schema import Mutation, Query
 
 
@@ -12,11 +11,6 @@ def test_schema(override_sqlalchemy_session):
     return Schema(
         query=Query, mutation=Mutation, extensions=[override_sqlalchemy_session]
     )
-
-
-@pytest.fixture(scope="module")
-def author_crud():
-    return crud_factory(AuthorModel)
 
 
 @pytest.fixture(scope="function")
@@ -38,9 +32,9 @@ def author_validated_data_list():
 
 
 @pytest.fixture(scope="function")
-def populate_db(db_session, author_crud, author_validated_data_list):
+def populate_db(db_session, author_validated_data_list):
     for author in author_validated_data_list:
-        author_crud.create(db_session, author)
+        AuthorSQLCrud.create(db_session, author)
 
 
 @pytest.fixture(scope="function")
