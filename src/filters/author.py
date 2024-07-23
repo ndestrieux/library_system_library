@@ -5,12 +5,13 @@ import strawberry
 from mixins import InputAsDictMixin
 
 
-class Filter:
+@strawberry.input
+class Filter(InputAsDictMixin):
     pass
 
 
 @strawberry.input
-class AllAuthorFilter(InputAsDictMixin, Filter):
+class AllAuthorFilter(Filter):
     first_name: Optional[str] = strawberry.UNSET
     middle_name: Optional[str] = strawberry.UNSET
     last_name: Optional[str] = strawberry.UNSET
