@@ -47,7 +47,7 @@ def db_session(db_url):
 
 
 @pytest.fixture(scope="function")
-def override_db(db_session):
+def override_sqlalchemy_session(db_session):
     """Create a test client that uses the override_get_db fixture to return a session."""
 
     class OverrideSQLAlchemySession(SchemaExtension):
