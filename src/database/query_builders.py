@@ -15,7 +15,6 @@ from filters.author import Filter
 MODEL_QUERY_PARAMS = {
     AuthorModel: {
         "filter_criterion": {
-            "id": AuthorModel.id.like,
             "first_name": AuthorModel.first_name.ilike,
             "middle_name": AuthorModel.middle_name.ilike,
             "last_name": AuthorModel.last_name.ilike,
@@ -86,9 +85,7 @@ class SQLQuery:
 
     def _build_filter_criteria(self) -> List[SQLCoreOperations]:
         if self.obj_id:
-            return [
-                MODEL_QUERY_PARAMS[self.model]["filter_criterion"]["id"](self.obj_id)
-            ]
+            return [self.model.id.like(self.obj_id)]
         if not self.q_filter:
             return []
         criterion = []
