@@ -51,9 +51,10 @@ class Mutation:
     ) -> Author:
         db = info.context["db"]
         requester = get_requester(info)
+        required_fields = info.selected_fields[0].selections
         data_dict = data.asdict() | {"last_updated_by": requester}
         validated_data = AuthorUpdateValidator(**data_dict)
-        author = AuthorCrud.update_by_id(db, validated_data, author_id)
+        author = AuthorCrud.update_by_id(db, validated_data, author_id, required_fields)
         return Author.from_instance(author)
 
     @strawberry.mutation

@@ -29,8 +29,8 @@ def crud_factory(model: Model):
             cls,
             session: Session,
             id_: int,
+            fields: List[SelectedField],
             *,
-            fields: List[SelectedField] = None,
             with_for_update: bool = False,
         ) -> Model:
             query_builder = SQLQuery(model, fields, obj_id=id_)
@@ -51,13 +51,18 @@ def crud_factory(model: Model):
             return session.execute(query).unique().scalars()
 
         @classmethod
-        def update_by_id(cls, session: Session, data: Validator, id_: int) -> Model:
-            db_model = cls.get_one_by_id(session, id_, with_for_update=True)
-            values = data.model_dump()
+        def update_by_id(
+            cls,
+            session: Session,
+            data: Validator,
+            id_: int,
+            fields: List[SelectedField],
+        ) -> Model:
+            db_model = cls.get_one_by_id(session, id_, fields, with_for_update=True)
+            values = data.model_dump(exclude_unset=True)
             for k, v in values.items():
                 setattr(db_model, k, v)
             session.commit()
-            session.refresh(db_model)
             return db_model
 
         @classmethod
