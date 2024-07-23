@@ -1,6 +1,5 @@
 from typing import Any, Dict, List, Optional
 
-import strawberry
 from sqlalchemy import Select, select
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import joinedload, load_only, strategy_options
@@ -93,16 +92,15 @@ class SQLQuery:
         if not self.q_filter:
             return []
         criterion = []
-        for k, v in self.q_filter.__dict__.items():
+        for k, v in self.q_filter.asdict().items():
             if k in MODEL_QUERY_PARAMS[self.model]["related_fields"]:
                 self.joins.append(
                     MODEL_QUERY_PARAMS[self.model]["joins"][k.split("_")[0]]
                 )
-            if v is not strawberry.UNSET:
-                value = f"%{v}%" if type(v) is str else v
-                criterion.append(
-                    MODEL_QUERY_PARAMS[self.model]["filter_criterion"][k](value)
-                )
+            value = f"%{v}%" if type(v) is str else v
+            criterion.append(
+                MODEL_QUERY_PARAMS[self.model]["filter_criterion"][k](value)
+            )
         return criterion
 
     def build(self) -> Select:
@@ -112,20 +110,3 @@ class SQLQuery:
         for j in self.joins:
             query = query.join(j)
         return query.options(*options).filter(*subquery)
-
-
-# class AuthorQuery(Query):
-#     FILTER_CRITERION_DICT = {
-#         "id": AuthorModel.id.like,
-#         "first_name": AuthorModel.first_name.ilike,
-#         "middle_name": AuthorModel.middle_name.ilike,
-#         "last_name": AuthorModel.last_name.ilike,
-#         "book_title": BookModel.title.ilike,
-#     }
-#     RELATED_FIELDS = [
-#         "book_title",
-#     ]
-#     JOIN_DICT = {
-#         "book": AuthorModel.books,
-#     }
-#     MODEL = AuthorModel
