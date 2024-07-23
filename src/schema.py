@@ -5,6 +5,7 @@ from strawberry import Info, Schema
 
 from database.crud_factory import crud_factory
 from database.models import Author as AuthorModel
+from database.validators.author import AuthorCreateValidator, AuthorUpdateValidator
 from definitions.author import Author
 from extensions import SQLAlchemySession
 from filters.author import AllAuthorFilter
@@ -40,7 +41,8 @@ class Mutation:
         db = info.context["db"]
         requester = get_requester(info)
         data_dict = data.asdict() | {"created_by": requester}
-        author = AuthorCrud.create(db, data_dict)
+        validated_data = AuthorCreateValidator(**data_dict)
+        author = AuthorCrud.create(db, validated_data)
         return Author.from_instance(author)
 
     @strawberry.mutation
@@ -50,7 +52,8 @@ class Mutation:
         db = info.context["db"]
         requester = get_requester(info)
         data_dict = data.asdict() | {"last_updated_by": requester}
-        author = AuthorCrud.update_by_id(db, data_dict, author_id)
+        validated_data = AuthorUpdateValidator(**data_dict)
+        author = AuthorCrud.update_by_id(db, validated_data, author_id)
         return Author.from_instance(author)
 
     @strawberry.mutation
