@@ -69,6 +69,17 @@ def author_details_query():
 
 
 @pytest.fixture(scope="function")
+def author_details_query_wrong_id():
+    return """
+        query {
+            authorDetails(authorId: 100)  {
+            id
+            lastName
+        }
+    }"""
+
+
+@pytest.fixture(scope="function")
 def graphql_create_author_query():
     """Generate author data."""
     return """mutation {
@@ -77,6 +88,46 @@ def graphql_create_author_query():
         firstName
         lastName
       }
+    }"""
+
+
+@pytest.fixture(scope="function")
+def graphql_update_author_query():
+    """Generate author data."""
+    return """mutation {
+      modifyAuthor(authorId: 3, data: {firstName: "J.R.R.", middleName: null})  {
+        id
+        firstName
+        middleName
+        lastName
+      }
+    }"""
+
+
+@pytest.fixture(scope="function")
+def graphql_update_author_query_wrong_id():
+    """Generate author data."""
+    return """mutation {
+      modifyAuthor(authorId: 100, data: {firstName: "J.R.R.", middleName: null})  {
+        id
+        firstName
+        middleName
+        lastName
+      }
+    }"""
+
+
+@pytest.fixture(scope="function")
+def graphql_delete_author_query():
+    return """mutation {
+        removeAuthor(authorId: 1)
+    }"""
+
+
+@pytest.fixture(scope="function")
+def graphql_delete_author_query_wrong_id():
+    return """mutation {
+        removeAuthor(authorId: 100)
     }"""
 
 
@@ -106,6 +157,15 @@ async def test_author_details(populate_db, test_schema, author_details_query):
     assert result.data["authorDetails"]["id"] == 1
 
 
+async def test_author_details_when_entry_does_not_exist(
+    populate_db, test_schema, author_details_query_wrong_id
+):
+    result = await test_schema.execute(
+        author_details_query_wrong_id, context_value={"requester": "user"}
+    )
+    assert result.errors
+
+
 async def test_author_creation(request_obj, graphql_create_author_query, test_schema):
     result = await test_schema.execute(
         graphql_create_author_query, context_value={"request": request_obj}
@@ -116,3 +176,45 @@ async def test_author_creation(request_obj, graphql_create_author_query, test_sc
         "firstName": "Dale",
         "lastName": "Cooper",
     }
+
+
+async def test_author_update(
+    populate_db, request_obj, graphql_update_author_query, test_schema
+):
+    result = await test_schema.execute(
+        graphql_update_author_query, context_value={"request": request_obj}
+    )
+    assert not result.errors
+    assert result.data["modifyAuthor"] == {
+        "id": 3,
+        "firstName": "J.R.R.",
+        "middleName": None,
+        "lastName": "Tolkien",
+    }
+
+
+async def test_author_update_when_entry_does_not_exist(
+    populate_db, request_obj, graphql_update_author_query_wrong_id, test_schema
+):
+    result = await test_schema.execute(
+        graphql_update_author_query_wrong_id, context_value={"request": request_obj}
+    )
+    assert result.errors
+
+
+async def test_author_delete(
+    populate_db, request_obj, graphql_delete_author_query, test_schema
+):
+    result = await test_schema.execute(
+        graphql_delete_author_query, context_value={"request": request_obj}
+    )
+    assert result.data["removeAuthor"]
+
+
+async def test_author_delete_when_entry_does_not_exist(
+    populate_db, request_obj, graphql_delete_author_query_wrong_id, test_schema
+):
+    result = await test_schema.execute(
+        graphql_delete_author_query_wrong_id, context_value={"request": request_obj}
+    )
+    assert not result.data["removeAuthor"]
