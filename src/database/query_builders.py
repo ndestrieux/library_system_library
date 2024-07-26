@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import Select, select
@@ -12,25 +13,10 @@ from database.models import Author as AuthorModel
 from database.models import Book as BookModel
 from filters.author import Filter
 
-MODEL_QUERY_PARAMS = {
-    AuthorModel: {
-        "filter_criterion": {
-            "first_name": AuthorModel.first_name.ilike,
-            "middle_name": AuthorModel.middle_name.ilike,
-            "last_name": AuthorModel.last_name.ilike,
-            "book_title": BookModel.title.ilike,
-        },
-        "related_fields": [
-            "book_title",
-        ],
-        "joins": {
-            "book": AuthorModel.books,
-        },
-    }
-}
 
+class SQLQuery(ABC):
+    model = None
 
-class SQLQuery:
     def __new__(cls, *args, **kwargs):
         kwargs_arr = kwargs.keys()
         if "q_filter" in kwargs_arr and "obj_id" in kwargs_arr:
@@ -52,6 +38,21 @@ class SQLQuery:
         self.obj_id = obj_id
         self.q_filter = q_filter
         self.joins = []
+
+    @property
+    @abstractmethod
+    def _get_filter_criteria(self) -> Dict:
+        pass
+
+    @property
+    @abstractmethod
+    def _get_related_fields(self) -> List:
+        pass
+
+    @property
+    @abstractmethod
+    def _get_join(self) -> Dict:
+        pass
 
     def _get_model_field_objs(
         self, model: BaseModel, fields: List[SelectedField]
@@ -83,6 +84,16 @@ class SQLQuery:
             options += [joinedload(relationship_attr).load_only(*relationship_fields)]
         return options
 
+    @staticmethod
+    def _format_query_value(value):
+        match value:
+            case str():
+                return f"%{value}%"
+            case dict():
+                return value.get("from_"), value.get("to_")
+            case _:
+                return value
+
     def _build_filter_criteria(self) -> List[SQLCoreOperations]:
         if self.obj_id:
             return [self.model.id.like(self.obj_id)]
@@ -90,13 +101,13 @@ class SQLQuery:
             return []
         criterion = []
         for k, v in self.q_filter.asdict().items():
-            if k in MODEL_QUERY_PARAMS[self.model]["related_fields"]:
-                self.joins.append(
-                    MODEL_QUERY_PARAMS[self.model]["joins"][k.split("_")[0]]
-                )
-            value = f"%{v}%" if type(v) is str else v
+            if k in self._get_related_fields:
+                self.joins.append(self._get_join[k.split("_")[0]])
+            formatted_value = self._format_query_value(v)
             criterion.append(
-                MODEL_QUERY_PARAMS[self.model]["filter_criterion"][k](value)
+                self._get_filter_criteria[k](
+                    *formatted_value if formatted_value is tuple else formatted_value
+                )
             )
         return criterion
 
@@ -107,3 +118,32 @@ class SQLQuery:
         for j in self.joins:
             query = query.join(j)
         return query.options(*options).filter(*subquery)
+
+
+class AuthorSQLQuery(SQLQuery):
+    model = AuthorModel
+
+    @property
+    def _get_filter_criteria(self):
+        return {
+            "first_name": AuthorModel.first_name.ilike,
+            "middle_name": AuthorModel.middle_name.ilike,
+            "last_name": AuthorModel.last_name.ilike,
+            "book_title": BookModel.title.ilike,
+            "created_by": AuthorModel.created_by.ilike,
+            "created_between": AuthorModel.created_on.between,
+            "last_updated_by": AuthorModel.last_updated_by.ilike,
+            "last_updated_between": AuthorModel.last_updated_on.between,
+        }
+
+    @property
+    def _get_related_fields(self):
+        return [
+            "book_title",
+        ]
+
+    @property
+    def _get_join(self):
+        return {
+            "book": AuthorModel.books,
+        }
