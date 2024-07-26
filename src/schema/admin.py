@@ -1,51 +1,51 @@
 from typing import List, Optional
 
 import strawberry
-from strawberry import Info, Schema
+from strawberry import Info
 
 from database.crud_factory import AuthorSQLCrud
 from database.validators.author import AuthorCreateValidator, AuthorUpdateValidator
-from definitions.author import Author
-from extensions import SQLAlchemySession
-from filters.author import AllAuthorFilter
+from definitions.author import AuthorAdmin
+from filters.author import AuthorAdminFilter
 from inputs.author import AuthorCreationInput, AuthorUpdateInput
+from permissions import HasAdminGroup, IsAuthenticated
 from utils import get_requester
 
 
 @strawberry.type
 class Query:
-    @strawberry.field
-    async def author_list(
-        self, info: Info, f: Optional[AllAuthorFilter] = None
-    ) -> List[Author]:
+    @strawberry.field(permission_classes=[IsAuthenticated, HasAdminGroup])
+    async def author_list_admin(
+        self, info: Info, f: Optional[AuthorAdminFilter] = None
+    ) -> List[AuthorAdmin]:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
         authors = AuthorSQLCrud.get_many_by_values(db, required_fields, f)
-        return [Author.from_instance(author) for author in authors]
+        return authors
 
-    @strawberry.field
-    async def author_details(self, info: Info, author_id: int) -> Author:
+    @strawberry.field(permission_classes=[IsAuthenticated, HasAdminGroup])
+    async def author_details_admin(self, info: Info, author_id: int) -> AuthorAdmin:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
         author = AuthorSQLCrud.get_one_by_id(db, author_id, fields=required_fields)
-        return Author.from_instance(author)
+        return author
 
 
 @strawberry.type
 class Mutation:
-    @strawberry.mutation
-    async def new_author(self, info: Info, data: AuthorCreationInput) -> Author:
+    @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
+    async def new_author(self, info: Info, data: AuthorCreationInput) -> AuthorAdmin:
         db = info.context["db"]
         requester = get_requester(info)
         data_dict = data.asdict() | {"created_by": requester}
         validated_data = AuthorCreateValidator(**data_dict)
         author = AuthorSQLCrud.create(db, validated_data)
-        return Author.from_instance(author)
+        return author
 
-    @strawberry.mutation
+    @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
     async def modify_author(
         self, info: Info, author_id: int, data: AuthorUpdateInput
-    ) -> Author:
+    ) -> AuthorAdmin:
         db = info.context["db"]
         requester = get_requester(info)
         required_fields = info.selected_fields[0].selections
@@ -54,13 +54,10 @@ class Mutation:
         author = AuthorSQLCrud.update_by_id(
             db, validated_data, author_id, required_fields
         )
-        return Author.from_instance(author)
+        return author
 
-    @strawberry.mutation
+    @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
     async def remove_author(self, info: Info, author_id: int) -> bool:
         db = info.context["db"]
         result = AuthorSQLCrud.remove_by_id(db, author_id)
         return bool(result)
-
-
-schema = Schema(query=Query, mutation=Mutation, extensions=[SQLAlchemySession])
