@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import Select, select
 from sqlalchemy.inspection import inspect
@@ -85,14 +85,14 @@ class SQLQuery(ABC):
         return options
 
     @staticmethod
-    def _format_query_value(value):
+    def _format_query_value(value: Any) -> Tuple:
         match value:
             case str():
-                return f"%{value}%"
+                return (f"%{value}%",)
             case dict():
                 return value.get("from_"), value.get("to_")
             case _:
-                return value
+                return (value,)
 
     def _build_filter_criteria(self) -> List[SQLCoreOperations]:
         if self.obj_id:
@@ -103,12 +103,7 @@ class SQLQuery(ABC):
         for k, v in self.q_filter.asdict().items():
             if k in self._get_related_fields:
                 self.joins.append(self._get_join[k.split("_")[0]])
-            formatted_value = self._format_query_value(v)
-            criterion.append(
-                self._get_filter_criteria[k](
-                    *formatted_value if formatted_value is tuple else formatted_value
-                )
-            )
+            criterion.append(self._get_filter_criteria[k](*self._format_query_value(v)))
         return criterion
 
     def build(self) -> Select:
