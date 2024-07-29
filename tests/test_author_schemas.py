@@ -3,13 +3,20 @@ from strawberry import Schema
 
 from database.validators.author import AuthorCreateValidator
 from src.database.crud_factory import AuthorSQLCrud
-from src.schema import Mutation, Query
+from src.schema.admin import Mutation
+from src.schema.admin import Query as QueryAdmin
+from src.schema.basic import Query as QueryBasic
 
 
 @pytest.fixture(scope="function")
-def test_schema(override_sqlalchemy_session):
+def test_basic_schema(override_sqlalchemy_session):
+    return Schema(query=QueryBasic, extensions=[override_sqlalchemy_session])
+
+
+@pytest.fixture(scope="function")
+def test_admin_schema(override_sqlalchemy_session):
     return Schema(
-        query=Query, mutation=Mutation, extensions=[override_sqlalchemy_session]
+        query=QueryAdmin, mutation=Mutation, extensions=[override_sqlalchemy_session]
     )
 
 
@@ -131,44 +138,50 @@ def graphql_delete_author_query_wrong_id():
     }"""
 
 
-async def test_author_list_without_filter(populate_db, test_schema, author_list_query):
-    result = await test_schema.execute(
-        author_list_query, context_value={"requester": "user"}
+async def test_author_list_without_filter(
+    populate_db, request_obj, test_basic_schema, author_list_query
+):
+    result = await test_basic_schema.execute(
+        author_list_query, context_value={"request": request_obj}
     )
     assert not result.errors
     assert len(result.data["authorList"]) == 3
 
 
 async def test_author_list_with_filter(
-    populate_db, test_schema, author_list_query_with_filter
+    populate_db, request_obj, test_basic_schema, author_list_query_with_filter
 ):
-    result = await test_schema.execute(
-        author_list_query_with_filter, context_value={"requester": "user"}
+    result = await test_basic_schema.execute(
+        author_list_query_with_filter, context_value={"request": request_obj}
     )
     assert not result.errors
     assert len(result.data["authorList"]) == 2
 
 
-async def test_author_details(populate_db, test_schema, author_details_query):
-    result = await test_schema.execute(
-        author_details_query, context_value={"requester": "user"}
+async def test_author_details(
+    populate_db, request_obj, test_basic_schema, author_details_query
+):
+    result = await test_basic_schema.execute(
+        author_details_query, context_value={"request": request_obj}
     )
     assert not result.errors
     assert result.data["authorDetails"]["id"] == 1
 
 
 async def test_author_details_when_entry_does_not_exist(
-    populate_db, test_schema, author_details_query_wrong_id
+    populate_db, request_obj, test_basic_schema, author_details_query_wrong_id
 ):
-    result = await test_schema.execute(
-        author_details_query_wrong_id, context_value={"requester": "user"}
+    result = await test_basic_schema.execute(
+        author_details_query_wrong_id, context_value={"request": request_obj}
     )
     assert result.errors
 
 
-async def test_author_creation(request_obj, graphql_create_author_query, test_schema):
-    result = await test_schema.execute(
-        graphql_create_author_query, context_value={"request": request_obj}
+async def test_author_creation(
+    admin_request_obj, graphql_create_author_query, test_admin_schema
+):
+    result = await test_admin_schema.execute(
+        graphql_create_author_query, context_value={"request": admin_request_obj}
     )
     assert not result.errors
     assert result.data["newAuthor"] == {
@@ -179,10 +192,10 @@ async def test_author_creation(request_obj, graphql_create_author_query, test_sc
 
 
 async def test_author_update(
-    populate_db, request_obj, graphql_update_author_query, test_schema
+    populate_db, admin_request_obj, graphql_update_author_query, test_admin_schema
 ):
-    result = await test_schema.execute(
-        graphql_update_author_query, context_value={"request": request_obj}
+    result = await test_admin_schema.execute(
+        graphql_update_author_query, context_value={"request": admin_request_obj}
     )
     assert not result.errors
     assert result.data["modifyAuthor"] == {
@@ -194,27 +207,35 @@ async def test_author_update(
 
 
 async def test_author_update_when_entry_does_not_exist(
-    populate_db, request_obj, graphql_update_author_query_wrong_id, test_schema
+    populate_db,
+    admin_request_obj,
+    graphql_update_author_query_wrong_id,
+    test_admin_schema,
 ):
-    result = await test_schema.execute(
-        graphql_update_author_query_wrong_id, context_value={"request": request_obj}
+    result = await test_admin_schema.execute(
+        graphql_update_author_query_wrong_id,
+        context_value={"request": admin_request_obj},
     )
     assert result.errors
 
 
 async def test_author_delete(
-    populate_db, request_obj, graphql_delete_author_query, test_schema
+    populate_db, admin_request_obj, graphql_delete_author_query, test_admin_schema
 ):
-    result = await test_schema.execute(
-        graphql_delete_author_query, context_value={"request": request_obj}
+    result = await test_admin_schema.execute(
+        graphql_delete_author_query, context_value={"request": admin_request_obj}
     )
     assert result.data["removeAuthor"]
 
 
 async def test_author_delete_when_entry_does_not_exist(
-    populate_db, request_obj, graphql_delete_author_query_wrong_id, test_schema
+    populate_db,
+    admin_request_obj,
+    graphql_delete_author_query_wrong_id,
+    test_admin_schema,
 ):
-    result = await test_schema.execute(
-        graphql_delete_author_query_wrong_id, context_value={"request": request_obj}
+    result = await test_admin_schema.execute(
+        graphql_delete_author_query_wrong_id,
+        context_value={"request": admin_request_obj},
     )
     assert not result.data["removeAuthor"]
