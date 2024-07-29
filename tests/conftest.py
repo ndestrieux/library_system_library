@@ -75,3 +75,24 @@ def request_obj(request_headers):
     )
     request._headers = request_headers
     return request
+
+
+@pytest.fixture(scope="function")
+def admin_request_headers():
+    return {
+        "requester": "admin",
+        "groups": [
+            "admin",
+        ],
+    }
+
+
+@pytest.fixture(scope="function")
+def admin_request_obj(admin_request_headers):
+    request = Request(
+        {
+            "type": "http",
+        }
+    )
+    request._headers = admin_request_headers
+    return request
