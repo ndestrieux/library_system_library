@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+from datetime import date
 from typing import List, Optional, TypeAlias
 
 from sqlalchemy import Column, ForeignKey, String, Table
@@ -36,9 +36,9 @@ class Book(Base):
     language: Mapped[LanguageChoices]
     category: Mapped[Optional[str]] = mapped_column(String(20), default=None)
     created_by: Mapped[str] = mapped_column(String(20))
-    created_on: Mapped[datetime] = mapped_column(insert_default=datetime.now)
+    created_on: Mapped[date] = mapped_column(insert_default=date.today)
     last_updated_by: Mapped[Optional[str]] = mapped_column(String(20))
-    last_updated_on: Mapped[Optional[datetime]] = mapped_column(onupdate=datetime.now)
+    last_updated_on: Mapped[Optional[date]] = mapped_column(onupdate=date.today)
 
 
 class Author(Base):
@@ -52,6 +52,6 @@ class Author(Base):
         "Book", secondary=book_authors, back_populates="authors"
     )
     created_by: Mapped[str] = mapped_column(String(20))
-    created_on: Mapped[datetime] = mapped_column(insert_default=datetime.now)
+    created_on: Mapped[date] = mapped_column(insert_default=date.today)
     last_updated_by: Mapped[Optional[str]] = mapped_column(String(20))
-    last_updated_on: Mapped[Optional[datetime]] = mapped_column(onupdate=datetime.now)
+    last_updated_on: Mapped[Optional[date]] = mapped_column(onupdate=date.today)
