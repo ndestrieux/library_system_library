@@ -20,6 +20,7 @@ isort = "*"
 pre-commit = "~3.7"
 pytest = "~8.2"
 pytest-asyncio = "^0.23.8"
+freezegun = "^1.5.1"
 
 [build-system]
 requires = ["poetry-core"]

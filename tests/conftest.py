@@ -6,6 +6,7 @@ from starlette.requests import Request
 from strawberry.extensions import SchemaExtension
 
 from src.database.db_conf import Base
+from src.permissions import HasAdminGroup
 
 
 def pytest_addoption(parser):
@@ -96,3 +97,8 @@ def admin_request_obj(admin_request_headers):
     )
     request._headers = admin_request_headers
     return request
+
+
+@pytest.fixture(scope="session")
+def no_admin_permission_error():
+    return HasAdminGroup.message
