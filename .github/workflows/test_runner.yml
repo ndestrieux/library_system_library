@@ -9,6 +9,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      which_db: sqlite
+      db_name: library_test.sqlite3
+
     steps:
       - uses: actions/checkout@v4
 
