@@ -1,19 +1,19 @@
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.orm import Session
 from starlette.requests import Request
 from strawberry.extensions import SchemaExtension
 
-from src.database.db_conf import Base
+from database.models import Base
 from src.permissions import HasAdminGroup
 
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--dburl",  # For Postgres use "postgresql://user:password@localhost/dbname"
+        "--dburl",
         action="store",
-        default="sqlite:///./test_db.sqlite3",  # Default uses SQLite in memory db
+        # default="sqlite:///./test_db.sqlite3",  # Default uses SQLite in memory db
+        default="sqlite:///./library.sqlite3",
         help="Database URL to use for tests.",
     )
 
@@ -25,22 +25,25 @@ def db_url(request):
 
 
 @pytest.fixture(scope="function")
-def db_session(db_url):
-    """Create a new database session with a rollback at the end of the test."""
-    # Create a SQLAlchemy engine
-    engine = create_engine(
-        db_url,
-        poolclass=StaticPool,
-    )
+def engine(db_url):
+    """Create engine for tests"""
+    return create_engine(db_url)
 
-    # Create a sessionmaker to manage sessions
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-    # Create tables in the database
-    Base.metadata.create_all(bind=engine)
+@pytest.fixture(scope="function")
+def tables(engine):
+    """Create and then drop tables"""
+    Base.metadata.create_all(engine)
+    yield
+    Base.metadata.drop_all(engine)
+
+
+@pytest.fixture(scope="function")
+def db_session(engine, tables):
+    """Create DB session for tests, transactions are rolled back at the end"""
     connection = engine.connect()
     transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
+    session = Session(bind=connection)
     yield session
     session.close()
     transaction.rollback()
@@ -49,7 +52,7 @@ def db_session(db_url):
 
 @pytest.fixture(scope="function")
 def override_sqlalchemy_session(db_session):
-    """Create a test client that uses the override_get_db fixture to return a session."""
+    """Create a test client that uses the override_get_db fixture to return a session"""
 
     class OverrideSQLAlchemySession(SchemaExtension):
         def on_operation(self):
@@ -60,15 +63,17 @@ def override_sqlalchemy_session(db_session):
     return OverrideSQLAlchemySession
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def request_headers():
+    """Request headers for basic user"""
     return {
         "requester": "user",
     }
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def request_obj(request_headers):
+    """Create request object coming from basic user"""
     request = Request(
         {
             "type": "http",
@@ -78,8 +83,9 @@ def request_obj(request_headers):
     return request
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def admin_request_headers():
+    """Request headers for admin user"""
     return {
         "requester": "admin",
         "groups": [
@@ -88,8 +94,9 @@ def admin_request_headers():
     }
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def admin_request_obj(admin_request_headers):
+    """Create request object coming from admin user"""
     request = Request(
         {
             "type": "http",

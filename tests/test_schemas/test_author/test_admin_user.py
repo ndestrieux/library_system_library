@@ -241,11 +241,11 @@ class TestAuthorCreation:
         }"""
 
     async def test_create_author_mutation(
-        self, admin_request_obj, graphql_create_author_query, test_schema
+        self, admin_request_obj, graphql_create_author_mutation, test_schema
     ):
         with freeze_time(date(2024, 4, 1)):
             result = await test_schema.execute(
-                graphql_create_author_query,
+                graphql_create_author_mutation,
                 context_value={"request": admin_request_obj},
             )
         assert not result.errors
@@ -264,11 +264,11 @@ class TestAuthorCreation:
         self,
         request_obj,
         test_schema,
-        graphql_create_author_query,
+        graphql_create_author_mutation,
         no_admin_permission_error,
     ):
         result = await test_schema.execute(
-            graphql_create_author_query, context_value={"request": request_obj}
+            graphql_create_author_mutation, context_value={"request": request_obj}
         )
         assert result.errors
         assert result.errors[0].message == no_admin_permission_error
@@ -365,10 +365,14 @@ class TestAuthorDelete:
         }"""
 
     async def test_delete_author_mutation(
-        self, populate_db, admin_request_obj, graphql_delete_author_query, test_schema
+        self,
+        populate_db,
+        admin_request_obj,
+        graphql_delete_author_mutation,
+        test_schema,
     ):
         result = await test_schema.execute(
-            graphql_delete_author_query, context_value={"request": admin_request_obj}
+            graphql_delete_author_mutation, context_value={"request": admin_request_obj}
         )
         assert result.data["removeAuthor"]
 
@@ -376,11 +380,11 @@ class TestAuthorDelete:
         self,
         populate_db,
         admin_request_obj,
-        graphql_delete_author_query_wrong_id,
+        graphql_delete_author_mutation_wrong_id,
         test_schema,
     ):
         result = await test_schema.execute(
-            graphql_delete_author_query_wrong_id,
+            graphql_delete_author_mutation_wrong_id,
             context_value={"request": admin_request_obj},
         )
         assert not result.data["removeAuthor"]
@@ -389,11 +393,11 @@ class TestAuthorDelete:
         self,
         request_obj,
         test_schema,
-        graphql_delete_author_query,
+        graphql_delete_author_mutation,
         no_admin_permission_error,
     ):
         result = await test_schema.execute(
-            graphql_delete_author_query, context_value={"request": request_obj}
+            graphql_delete_author_mutation, context_value={"request": request_obj}
         )
         assert result.errors
         assert result.errors[0].message == no_admin_permission_error
