@@ -8,8 +8,8 @@ from sqlalchemy.sql.elements import SQLCoreOperations
 from strawberry.types.nodes import SelectedField
 from strawberry.utils.str_converters import to_snake_case
 
-from database.db_conf import Base as BaseModel
 from database.models import Author as AuthorModel
+from database.models import BaseModel
 from database.models import Book as BookModel
 from filters.author import Filter
 

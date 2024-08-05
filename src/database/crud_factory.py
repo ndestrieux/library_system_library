@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from strawberry.types.nodes import SelectedField
 
 from database.models import Author as AuthorModel
-from database.models import Model
+from database.models import BaseModel
 from database.query_builders import AuthorSQLQuery
 from database.validators.author import Validator
 from filters.author import Filter
@@ -21,7 +21,7 @@ class BaseSQLCrud(ABC):
         cls,
         db: Session,
         data: Validator,
-    ) -> Model:
+    ) -> BaseModel:
         obj = cls.MODEL(**data.model_dump())
         db.add(obj)
         db.commit()
@@ -35,7 +35,7 @@ class BaseSQLCrud(ABC):
         fields: List[SelectedField],
         *,
         with_for_update: bool = False,
-    ) -> Model:
+    ) -> BaseModel:
         query_builder = cls.QUERY_BUILDER(cls.MODEL, fields, obj_id=id_)
         query = query_builder.build()
         if with_for_update:
@@ -60,7 +60,7 @@ class BaseSQLCrud(ABC):
         data: Validator,
         id_: int,
         fields: List[SelectedField],
-    ) -> Model:
+    ) -> BaseModel:
         obj = cls.get_one_by_id(session, id_, fields, with_for_update=True)
         values = data.model_dump(exclude_unset=True)
         for k, v in values.items():

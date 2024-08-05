@@ -3,11 +3,11 @@ from datetime import date
 from typing import List, Optional, TypeAlias
 
 from sqlalchemy import Column, ForeignKey, String, Table
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, declarative_base, mapped_column, relationship
 
-from database.db_conf import Base
+Base = declarative_base()
 
-Model: TypeAlias = Base
+BaseModel: TypeAlias = Base
 
 
 class LanguageChoices(enum.Enum):

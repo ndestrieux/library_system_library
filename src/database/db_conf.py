@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from conf import get_settings
 
@@ -13,5 +13,3 @@ DATABASE_URL = DB_CHOICES[get_settings().which_db]
 engine = create_engine(DATABASE_URL, pool_size=10, max_overflow=0)
 
 SessionLocal = sessionmaker(engine)
-
-Base = declarative_base()

@@ -5,7 +5,8 @@ from strawberry import Schema
 from strawberry.fastapi import GraphQLRouter
 from strawberry.tools import merge_types
 
-from database.db_conf import Base, engine
+from database.db_conf import engine
+from database.models import Base
 from extensions import SQLAlchemySession
 from schema.admin import Mutation
 from schema.admin import Query as QueryAdmin
