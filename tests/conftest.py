@@ -12,8 +12,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--dburl",
         action="store",
-        # default="sqlite:///./test_db.sqlite3",  # Default uses SQLite in memory db
-        default="sqlite:///./library.sqlite3",
+        default="sqlite:///./test_library.sqlite3",
         help="Database URL to use for tests.",
     )
 
