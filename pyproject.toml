@@ -19,8 +19,23 @@ black = "*"
 isort = "*"
 pre-commit = "~3.7"
 pytest = "~8.2"
-pytest-trio = "~0.8"
+pytest-asyncio = "^0.23.8"
+freezegun = "^1.5.1"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.plugins.dotenv]
+ignore = "false"
+location = "./src/.env"
+
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-v -ra -q"
+minversion = "6.0"
+filterwarnings = ["ignore:'typing.ByteString' is deprecated and slated for removal in Python 3.14"]
