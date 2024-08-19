@@ -125,6 +125,7 @@ class AuthorSQLQuery(SQLQuery):
             "middle_name": AuthorModel.middle_name.ilike,
             "last_name": AuthorModel.last_name.ilike,
             "book_title": BookModel.title.ilike,
+            "book_publication_year": BookModel.publication_year.like,
             "created_by": AuthorModel.created_by.ilike,
             "created_between": AuthorModel.created_on.between,
             "last_updated_by": AuthorModel.last_updated_by.ilike,
@@ -135,6 +136,7 @@ class AuthorSQLQuery(SQLQuery):
     def _get_related_fields(self):
         return [
             "book_title",
+            "book_publication_year",
         ]
 
     @property

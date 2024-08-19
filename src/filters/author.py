@@ -11,6 +11,7 @@ class AuthorBasicFilter(Filter):
     middle_name: Optional[str] = strawberry.UNSET
     last_name: Optional[str] = strawberry.UNSET
     book_title: Optional[str] = strawberry.UNSET
+    book_publication_year: Optional[int] = strawberry.UNSET
 
 
 @strawberry.input
