@@ -7,6 +7,7 @@ from definitions.base import AdminExtraFields
 
 @strawberry.type
 class BookBasic:
+    id: int
     title: str
     authors: List[Annotated["AuthorBasic", strawberry.lazy(".author")]]
     publication_year: int
