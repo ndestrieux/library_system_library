@@ -3,9 +3,11 @@ from typing import List, Optional
 import strawberry
 from strawberry import Info
 
-from database.crud_factory import AuthorSQLCrud
+from database.crud_factory import AuthorSQLCrud, BookSQLCrud
 from definitions.author import AuthorBasic
+from definitions.book import BookBasic
 from filters.author import AuthorBasicFilter
+from filters.book import BookBasicFilter
 from permissions import IsAuthenticated
 
 
@@ -26,3 +28,12 @@ class Query:
         required_fields = info.selected_fields[0].selections
         author = AuthorSQLCrud.get_one_by_id(db, author_id, fields=required_fields)
         return author
+
+    @strawberry.field(permission_classes=[IsAuthenticated])
+    async def book_list(
+        self, info: Info, f: Optional[BookBasicFilter] = None
+    ) -> List[BookBasic]:
+        db = info.context["db"]
+        required_fields = info.selected_fields[0].selections
+        books = BookSQLCrud.get_many_by_values(db, required_fields, f)
+        return books
