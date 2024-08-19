@@ -7,7 +7,8 @@ from strawberry.types.nodes import SelectedField
 
 from database.models import Author as AuthorModel
 from database.models import BaseModel
-from database.query_builders import AuthorSQLQuery
+from database.models import Book as BookModel
+from database.query_builders import AuthorSQLQuery, BookSQLQuery
 from database.validators.author import Validator
 from filters.author import Filter
 
@@ -79,3 +80,8 @@ class BaseSQLCrud(ABC):
 class AuthorSQLCrud(BaseSQLCrud):
     MODEL = AuthorModel
     QUERY_BUILDER = AuthorSQLQuery
+
+
+class BookSQLCrud(BaseSQLCrud):
+    MODEL = BookModel
+    QUERY_BUILDER = BookSQLQuery

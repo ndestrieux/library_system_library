@@ -142,3 +142,37 @@ class AuthorSQLQuery(SQLQuery):
         return {
             "book": AuthorModel.books,
         }
+
+
+class BookSQLQuery(SQLQuery):
+    model = BookModel
+
+    @property
+    def _get_filter_criteria(self):
+        return {
+            "title": BookModel.title.ilike,
+            "publication_year": BookModel.publication_year.like,
+            "language": BookModel.language.like,
+            "category": BookModel.category.ilike,
+            "created_by": BookModel.created_by.ilike,
+            "created_between": BookModel.created_on.between,
+            "last_updated_by": BookModel.last_updated_by.ilike,
+            "last_updated_between": BookModel.last_updated_on.between,
+            "author_first_name": AuthorModel.first_name.ilike,
+            "author_middle_name": AuthorModel.middle_name.ilike,
+            "author_last_name": AuthorModel.last_name.ilike,
+        }
+
+    @property
+    def _get_related_fields(self):
+        return [
+            "author_first_name",
+            "author_middle_name",
+            "author_last_name",
+        ]
+
+    @property
+    def _get_join(self):
+        return {
+            "author": BookModel.authors,
+        }

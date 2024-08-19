@@ -1,18 +1,16 @@
-from typing import Optional, TypeAlias
+from typing import Optional
 
-from pydantic import BaseModel
-
-Validator: TypeAlias = BaseModel
+from database.validators.base import Validator
 
 
-class AuthorCreateValidator(BaseModel):
+class AuthorCreateValidator(Validator):
     first_name: str
     middle_name: Optional[str] = None
     last_name: str
     created_by: str
 
 
-class AuthorUpdateValidator(BaseModel):
+class AuthorUpdateValidator(Validator):
     first_name: Optional[str] = None
     middle_name: Optional[str] = None
     last_name: Optional[str] = None
