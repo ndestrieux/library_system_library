@@ -1,23 +1,8 @@
-from datetime import date
-from typing import Generic, Optional, TypeVar
+from typing import Optional
 
 import strawberry
 
-from mixins import InputAsDictMixin
-
-
-@strawberry.input
-class Filter(InputAsDictMixin):
-    pass
-
-
-T = TypeVar("T")
-
-
-@strawberry.input
-class BetweenDatesFilter(Generic[T]):
-    from_: date
-    to_: date
+from filters.base import AdminExtraFieldsFilter, Filter
 
 
 @strawberry.input
@@ -29,8 +14,5 @@ class AuthorBasicFilter(Filter):
 
 
 @strawberry.input
-class AuthorAdminFilter(AuthorBasicFilter):
-    created_by: Optional[str] = strawberry.UNSET
-    created_between: Optional[BetweenDatesFilter] = strawberry.UNSET
-    last_updated_by: Optional[str] = strawberry.UNSET
-    last_updated_between: Optional[BetweenDatesFilter] = strawberry.UNSET
+class AuthorAdminFilter(AuthorBasicFilter, AdminExtraFieldsFilter):
+    pass
