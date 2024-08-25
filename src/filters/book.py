@@ -15,5 +15,5 @@ class BookBasicFilter(Filter):
 
 
 @strawberry.input
-class AuthorAdminFilter(BookBasicFilter, AdminExtraFieldsFilter):
+class BookAdminFilter(BookBasicFilter, AdminExtraFieldsFilter):
     pass

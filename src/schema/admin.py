@@ -3,10 +3,12 @@ from typing import List, Optional
 import strawberry
 from strawberry import Info
 
-from database.crud_factory import AuthorSQLCrud
+from database.crud_factory import AuthorSQLCrud, BookSQLCrud
 from database.validators.author import AuthorCreateValidator, AuthorUpdateValidator
 from definitions.author import AuthorAdmin
+from definitions.book import BookAdmin
 from filters.author import AuthorAdminFilter
+from filters.book import BookAdminFilter
 from inputs.author import AuthorCreationInput, AuthorUpdateInput
 from permissions import HasAdminGroup, IsAuthenticated
 from utils import get_requester
@@ -28,6 +30,22 @@ class Query:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
         author = AuthorSQLCrud.get_one_by_id(db, author_id, fields=required_fields)
+        return author
+
+    @strawberry.field(permission_classes=[IsAuthenticated])
+    async def book_list_admin(
+        self, info: Info, f: Optional[BookAdminFilter] = None
+    ) -> List[BookAdmin]:
+        db = info.context["db"]
+        required_fields = info.selected_fields[0].selections
+        books = BookSQLCrud.get_many_by_values(db, required_fields, f)
+        return books
+
+    @strawberry.field(permission_classes=[IsAuthenticated])
+    async def book_details_admin(self, info: Info, book_id: int) -> BookAdmin:
+        db = info.context["db"]
+        required_fields = info.selected_fields[0].selections
+        author = BookSQLCrud.get_one_by_id(db, book_id, fields=required_fields)
         return author
 
 
