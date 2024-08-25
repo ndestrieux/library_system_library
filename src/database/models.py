@@ -14,6 +14,7 @@ class LanguageChoices(enum.Enum):
     EN = "English"
     FR = "French"
     PL = "Polish"
+    OTHER = "Other"
 
 
 book_authors = Table(
