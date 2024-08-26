@@ -10,3 +10,11 @@ class BookCreateValidator(Validator):
     language: Optional[LanguageChoices] = LanguageChoices.OTHER
     category: Optional[str] = None
     created_by: str
+
+
+class BookUpdateValidator(Validator):
+    title: Optional[str] = None
+    publication_year: Optional[int] = None
+    language: Optional[LanguageChoices] = LanguageChoices.OTHER
+    category: Optional[str] = None
+    last_updated_by: str

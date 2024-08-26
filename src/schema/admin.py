@@ -5,11 +5,13 @@ from strawberry import Info
 
 from database.crud_factory import AuthorSQLCrud, BookSQLCrud
 from database.validators.author import AuthorCreateValidator, AuthorUpdateValidator
+from database.validators.book import BookCreateValidator, BookUpdateValidator
 from definitions.author import AuthorAdmin
 from definitions.book import BookAdmin
 from filters.author import AuthorAdminFilter
 from filters.book import BookAdminFilter
 from inputs.author import AuthorCreationInput, AuthorUpdateInput
+from inputs.book import BookCreationInput, BookUpdateInput
 from permissions import HasAdminGroup, IsAuthenticated
 from utils import get_requester
 
@@ -78,4 +80,31 @@ class Mutation:
     async def remove_author(self, info: Info, author_id: int) -> bool:
         db = info.context["db"]
         result = AuthorSQLCrud.remove_by_id(db, author_id)
+        return bool(result)
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
+    async def new_book(self, info: Info, data: BookCreationInput) -> BookAdmin:
+        db = info.context["db"]
+        requester = get_requester(info)
+        data_dict = data.asdict() | {"created_by": requester}
+        validated_data = BookCreateValidator(**data_dict)
+        author = BookSQLCrud.create(db, validated_data)
+        return author
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
+    async def modify_book(
+        self, info: Info, book_id: int, data: BookUpdateInput
+    ) -> BookAdmin:
+        db = info.context["db"]
+        requester = get_requester(info)
+        required_fields = info.selected_fields[0].selections
+        data_dict = data.asdict() | {"last_updated_by": requester}
+        validated_data = BookUpdateValidator(**data_dict)
+        author = BookSQLCrud.update_by_id(db, validated_data, book_id, required_fields)
+        return author
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
+    async def remove_book(self, info: Info, book_id: int) -> bool:
+        db = info.context["db"]
+        result = BookSQLCrud.remove_by_id(db, book_id)
         return bool(result)
