@@ -2,6 +2,7 @@ from typing import List, Optional
 
 import strawberry
 from strawberry import Info
+from strawberry.exceptions import GraphQLError
 
 from database.crud_factory import AuthorSQLCrud, BookSQLCrud
 from database.validators.author import AuthorCreateValidator, AuthorUpdateValidator
@@ -86,10 +87,17 @@ class Mutation:
     async def new_book(self, info: Info, data: BookCreationInput) -> BookAdmin:
         db = info.context["db"]
         requester = get_requester(info)
+        authors = data.authors
+        if not authors:
+            raise GraphQLError("Created book should have at least one author.")
         data_dict = data.asdict() | {"created_by": requester}
         validated_data = BookCreateValidator(**data_dict)
-        author = BookSQLCrud.create(db, validated_data)
-        return author
+        book = BookSQLCrud.create(db, validated_data)
+        for author_id in authors:
+            author_obj = AuthorSQLCrud.get_one_by_id(db, author_id)
+            book.authors.append(author_obj)
+            db.commit()
+        return book
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
     async def modify_book(
