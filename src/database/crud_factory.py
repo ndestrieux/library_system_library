@@ -33,7 +33,7 @@ class BaseSQLCrud(ABC):
         cls,
         session: Session,
         id_: int,
-        fields: List[SelectedField],
+        fields: Optional[List[SelectedField]] = None,
         *,
         with_for_update: bool = False,
     ) -> BaseModel:

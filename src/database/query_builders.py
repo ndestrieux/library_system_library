@@ -28,7 +28,7 @@ class SQLQuery(ABC):
     def __init__(
         self,
         model: BaseModel,
-        fields: List[SelectedField],
+        fields: Optional[List[SelectedField]] = None,
         *,
         obj_id: Optional[int] = None,
         q_filter: Optional[Filter] = None,
@@ -108,11 +108,13 @@ class SQLQuery(ABC):
 
     def build(self) -> Select:
         query = select(self.model)
-        options = self._build_options()
         subquery = self._build_filter_criteria()
         for j in self.joins:
             query = query.join(j)
-        return query.options(*options).filter(*subquery)
+        if self.fields:
+            options = self._build_options()
+            query = query.options(*options)
+        return query.filter(*subquery)
 
 
 class AuthorSQLQuery(SQLQuery):
