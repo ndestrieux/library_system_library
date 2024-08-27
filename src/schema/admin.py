@@ -2,13 +2,15 @@ from typing import List, Optional
 
 import strawberry
 from strawberry import Info
-from strawberry.exceptions import GraphQLError
 
 from database.crud_factory import AuthorSQLCrud, BookSQLCrud
+from database.models import Author as AuthorModel
+from database.models import Book as BookModel
 from database.validators.author import AuthorCreateValidator, AuthorUpdateValidator
 from database.validators.book import BookCreateValidator, BookUpdateValidator
 from definitions.author import AuthorAdmin
 from definitions.book import BookAdmin
+from exceptions import RelatedObjectMissingError
 from filters.author import AuthorAdminFilter
 from filters.book import BookAdminFilter
 from inputs.author import AuthorCreationInput, AuthorUpdateInput
@@ -89,7 +91,7 @@ class Mutation:
         requester = get_requester(info)
         authors = data.authors
         if not authors:
-            raise GraphQLError("Created book should have at least one author.")
+            raise RelatedObjectMissingError(BookModel, AuthorModel)
         data_dict = data.asdict() | {"created_by": requester}
         validated_data = BookCreateValidator(**data_dict)
         book = BookSQLCrud.create(db, validated_data)
