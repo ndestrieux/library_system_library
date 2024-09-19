@@ -15,7 +15,7 @@ from filters.author import Filter
 
 
 class SQLQuery(ABC):
-    model = None
+    MODEL = None
 
     def __new__(cls, *args, **kwargs):
         kwargs_arr = kwargs.keys()
@@ -27,13 +27,11 @@ class SQLQuery(ABC):
 
     def __init__(
         self,
-        model: BaseModel,
         fields: Optional[List[SelectedField]] = None,
         *,
         obj_id: Optional[int] = None,
         q_filter: Optional[Filter] = None,
     ):
-        self.model = model
         self.fields = fields
         self.obj_id = obj_id
         self.q_filter = q_filter
@@ -74,11 +72,11 @@ class SQLQuery(ABC):
         return result
 
     def _build_options(self) -> List[strategy_options]:
-        load_attrs = self._get_model_field_objs(self.model, self.fields)
+        load_attrs = self._get_model_field_objs(self.MODEL, self.fields)
         options = [load_only(*load_attrs["fields"])]
         if load_attrs.get("related"):
             relationship_attr = getattr(
-                self.model, load_attrs.get("related")[0].get("name")
+                self.MODEL, load_attrs.get("related")[0].get("name")
             )
             relationship_fields = load_attrs.get("related")[0].get("fields")
             options += [joinedload(relationship_attr).load_only(*relationship_fields)]
@@ -96,7 +94,7 @@ class SQLQuery(ABC):
 
     def _build_filter_criteria(self) -> List[SQLCoreOperations]:
         if self.obj_id:
-            return [self.model.id.like(self.obj_id)]
+            return [self.MODEL.id.like(self.obj_id)]
         if not self.q_filter:
             return []
         criterion = []
@@ -107,7 +105,7 @@ class SQLQuery(ABC):
         return criterion
 
     def build(self) -> Select:
-        query = select(self.model)
+        query = select(self.MODEL)
         subquery = self._build_filter_criteria()
         for j in self.joins:
             query = query.join(j)
@@ -118,7 +116,7 @@ class SQLQuery(ABC):
 
 
 class AuthorSQLQuery(SQLQuery):
-    model = AuthorModel
+    MODEL = AuthorModel
 
     @property
     def _get_filter_criteria(self):
@@ -149,7 +147,7 @@ class AuthorSQLQuery(SQLQuery):
 
 
 class BookSQLQuery(SQLQuery):
-    model = BookModel
+    MODEL = BookModel
 
     @property
     def _get_filter_criteria(self):
