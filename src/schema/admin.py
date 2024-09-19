@@ -63,6 +63,7 @@ class Mutation:
         data_dict = data.asdict() | {"created_by": requester}
         validated_data = AuthorCreateValidator(**data_dict)
         author = AuthorSQLCrud.create(db, validated_data)
+        db.commit()
         return author
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
@@ -77,12 +78,14 @@ class Mutation:
         author = AuthorSQLCrud.update_by_id(
             db, validated_data, author_id, required_fields
         )
+        db.commit()
         return author
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
     async def remove_author(self, info: Info, author_id: int) -> bool:
         db = info.context["db"]
         result = AuthorSQLCrud.remove_by_id(db, author_id)
+        db.commit()
         return bool(result)
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])

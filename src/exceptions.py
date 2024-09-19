@@ -3,8 +3,6 @@ from strawberry.exceptions import StrawberryGraphQLError
 from database.models import BaseModel
 
 
-class RelatedObjectMissingError(StrawberryGraphQLError):
-    def __init__(self, model: BaseModel, related_model: BaseModel, **kwargs):
-        super().__init__(
-            f"{model.__name__} object should be related to at least 1 object of type {related_model.__name__}."
-        )
+class ObjectNotFound(StrawberryGraphQLError):
+    def __init__(self, model: BaseModel, id_: int, **kwargs):
+        super().__init__(f"{model.__name__} object with id '{id_}' could not be found.")

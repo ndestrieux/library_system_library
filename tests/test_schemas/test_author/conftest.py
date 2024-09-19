@@ -31,3 +31,4 @@ def populate_db(db_session, author_validated_data_list):
     for author in author_validated_data_list:
         with freeze_time(dates):
             AuthorSQLCrud.create(db_session, author)
+            db_session.commit()
