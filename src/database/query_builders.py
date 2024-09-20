@@ -16,12 +16,13 @@ from filters.author import Filter
 
 class SQLQuery(ABC):
     MODEL = None
+    POSSIBLE_FILTER_ARGS = ["obj_id", "q_filter"]
 
     def __new__(cls, *args, **kwargs):
-        kwargs_arr = kwargs.keys()
-        if "q_filter" in kwargs_arr and "obj_id" in kwargs_arr:
+        kwargs_arr = tuple(kwargs.keys())
+        if len(list(set(cls.POSSIBLE_FILTER_ARGS) & set(kwargs_arr))) > 1:
             raise AttributeError(
-                "Query filter and object ID cannot be both passed when building query."
+                f"Only one arg of '{kwargs_arr}' can be passed when building query."
             )
         return super().__new__(cls)
 
