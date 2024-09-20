@@ -12,7 +12,7 @@ from database.models import Book as BookModel
 from database.query_builders import AuthorSQLQuery, BookSQLQuery
 from database.validators.author import Validator
 from exceptions import ObjectNotFound
-from filters.author import Filter
+from filters.base import Filter
 
 
 class BaseSQLCrud(ABC):
@@ -53,7 +53,7 @@ class BaseSQLCrud(ABC):
         session: Session,
         fields: Optional[List[SelectedField]] = None,
         q_filter: Optional[Filter] = None,
-    ):
+    ) -> BaseModel:
         query_builder = cls.QUERY_BUILDER(fields, q_filter=q_filter)
         query = query_builder.build()
         return session.execute(query).unique().scalars()
