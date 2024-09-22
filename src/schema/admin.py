@@ -27,7 +27,7 @@ class Query:
     ) -> List[AuthorAdmin]:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
-        authors = AuthorSQLCrud.get_many_by_values(db, required_fields, f)
+        authors = AuthorSQLCrud.get_many_by_values(db, required_fields, q_filter=f)
         return authors
 
     @strawberry.field(permission_classes=[IsAuthenticated, HasAdminGroup])
@@ -43,7 +43,7 @@ class Query:
     ) -> List[BookAdmin]:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
-        books = BookSQLCrud.get_many_by_values(db, required_fields, f)
+        books = BookSQLCrud.get_many_by_values(db, required_fields, q_filter=f)
         return books
 
     @strawberry.field(permission_classes=[IsAuthenticated])
