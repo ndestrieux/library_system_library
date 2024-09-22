@@ -4,13 +4,10 @@ import strawberry
 from strawberry import Info
 
 from database.crud_factory import AuthorSQLCrud, BookSQLCrud
-from database.models import Author as AuthorModel
-from database.models import Book as BookModel
 from database.validators.author import AuthorCreateValidator, AuthorUpdateValidator
 from database.validators.book import BookCreateValidator, BookUpdateValidator
 from definitions.author import AuthorAdmin
 from definitions.book import BookAdmin
-from exceptions import RelatedObjectMissingError
 from filters.author import AuthorAdminFilter
 from filters.book import BookAdminFilter
 from inputs.author import AuthorCreationInput, AuthorUpdateInput
@@ -92,16 +89,15 @@ class Mutation:
     async def new_book(self, info: Info, data: BookCreationInput) -> BookAdmin:
         db = info.context["db"]
         requester = get_requester(info)
-        authors = data.authors
-        if not authors:
-            raise RelatedObjectMissingError(BookModel, AuthorModel)
         data_dict = data.asdict() | {"created_by": requester}
         validated_data = BookCreateValidator(**data_dict)
+        author_list = [
+            AuthorSQLCrud.get_one_by_id(db, author_id)
+            for author_id in validated_data.authors
+        ]
         book = BookSQLCrud.create(db, validated_data)
-        for author_id in authors:
-            author_obj = AuthorSQLCrud.get_one_by_id(db, author_id)
-            book.authors.append(author_obj)
-            db.commit()
+        book.authors += author_list
+        db.commit()
         return book
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
