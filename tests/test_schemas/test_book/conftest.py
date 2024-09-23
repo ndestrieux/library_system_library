@@ -38,6 +38,7 @@ def book_data_list(db_session):
     return [
         {
             "title": "Dracula",
+            "authors": [1],
             "publication_year": 1897,
             "language": LanguageChoices.EN,
             "category": "Horror",
@@ -45,6 +46,7 @@ def book_data_list(db_session):
         },
         {
             "title": "Voyage au bout de la nuit",
+            "authors": [2],
             "publication_year": 1932,
             "language": LanguageChoices.FR,
             "category": "Novel",
@@ -52,6 +54,7 @@ def book_data_list(db_session):
         },
         {
             "title": "The Hobbit",
+            "authors": [3],
             "publication_year": 1937,
             "language": LanguageChoices.EN,
             "category": "Fantasy",
