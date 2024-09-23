@@ -8,6 +8,7 @@ from database.validators.author import AuthorCreateValidator, AuthorUpdateValida
 from database.validators.book import BookCreateValidator, BookUpdateValidator
 from definitions.author import AuthorAdmin
 from definitions.book import BookAdmin
+from exceptions import ObjectNotFound
 from filters.author import AuthorAdminFilter
 from filters.book import BookAdminFilter
 from inputs.author import AuthorCreationInput, AuthorUpdateInput
@@ -108,9 +109,29 @@ class Mutation:
         requester = get_requester(info)
         required_fields = info.selected_fields[0].selections
         data_dict = data.asdict() | {"last_updated_by": requester}
-        validated_data = BookUpdateValidator(**data_dict)
-        author = BookSQLCrud.update_by_id(db, validated_data, book_id, required_fields)
-        return author
+        author_count = len(BookSQLCrud.get_one_by_id(db, book_id).authors)
+        validated_data = BookUpdateValidator(
+            id_=book_id, author_count=author_count, **data_dict
+        )
+        book_obj = BookSQLCrud.update_by_id(
+            db, validated_data, book_id, required_fields
+        )
+        add_authors = [
+            AuthorSQLCrud.get_one_by_id(db, author_id)
+            for author_id in validated_data.add_authors
+        ]
+        remove_authors = []
+        for author_id in validated_data.remove_authors:
+            try:
+                remove_authors.append(AuthorSQLCrud.get_one_by_id(db, author_id))
+            except ObjectNotFound:
+                pass
+        book_obj.authors += add_authors
+        for author_obj in remove_authors:
+            if author_obj in book_obj.authors:
+                book_obj.authors.remove(author_obj)
+        db.commit()
+        return book_obj
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
     async def remove_book(self, info: Info, book_id: int) -> bool:
