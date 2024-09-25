@@ -78,6 +78,32 @@ class BaseSQLCrud(ABC):
         rows = session.execute(query)
         return rows.rowcount
 
+    @classmethod
+    def create_relation(
+        cls, session: Session, base_obj: BaseModel, related_ids: List[int]
+    ):
+        relation_name = cls.MODEL.__tablename__
+        [
+            getattr(base_obj, relation_name).append(
+                cls.get_one_by_id(session, related_obj_id)
+            )
+            for related_obj_id in related_ids
+        ]
+
+    @classmethod
+    def remove_relation(
+        cls, session: Session, base_obj: BaseModel, related_ids: List[int]
+    ):
+        relation_name = cls.MODEL.__tablename__
+        existing_relations = getattr(base_obj, relation_name)
+        for id_ in related_ids:
+            try:
+                related_obj = cls.get_one_by_id(session, id_)
+                if related_obj in existing_relations:
+                    existing_relations.remove(related_obj)
+            except ObjectNotFound:
+                pass
+
 
 class AuthorSQLCrud(BaseSQLCrud):
     MODEL = AuthorModel

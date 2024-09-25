@@ -8,7 +8,6 @@ from database.validators.author import AuthorCreateValidator, AuthorUpdateValida
 from database.validators.book import BookCreateValidator, BookUpdateValidator
 from definitions.author import AuthorAdmin
 from definitions.book import BookAdmin
-from exceptions import ObjectNotFound
 from filters.author import AuthorAdminFilter
 from filters.book import BookAdminFilter
 from inputs.author import AuthorCreationInput, AuthorUpdateInput
@@ -116,20 +115,8 @@ class Mutation:
         book_obj = BookSQLCrud.update_by_id(
             db, validated_data, book_id, required_fields
         )
-        add_authors = [
-            AuthorSQLCrud.get_one_by_id(db, author_id)
-            for author_id in validated_data.add_authors
-        ]
-        remove_authors = []
-        for author_id in validated_data.remove_authors:
-            try:
-                remove_authors.append(AuthorSQLCrud.get_one_by_id(db, author_id))
-            except ObjectNotFound:
-                pass
-        book_obj.authors += add_authors
-        for author_obj in remove_authors:
-            if author_obj in book_obj.authors:
-                book_obj.authors.remove(author_obj)
+        AuthorSQLCrud.create_relation(db, book_obj, validated_data.add_authors)
+        AuthorSQLCrud.remove_relation(db, book_obj, validated_data.remove_authors)
         db.commit()
         return book_obj
 
