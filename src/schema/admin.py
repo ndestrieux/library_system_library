@@ -24,15 +24,15 @@ class Query:
     ) -> List[AuthorAdmin]:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
-        authors = AuthorSQLCrud.get_many_by_values(db, required_fields, q_filter=f)
-        return authors
+        author_objs = AuthorSQLCrud.get_many_by_values(db, required_fields, q_filter=f)
+        return author_objs
 
     @strawberry.field(permission_classes=[IsAuthenticated, HasAdminGroup])
     async def author_details_admin(self, info: Info, author_id: int) -> AuthorAdmin:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
-        author = AuthorSQLCrud.get_one_by_id(db, author_id, fields=required_fields)
-        return author
+        author_obj = AuthorSQLCrud.get_one_by_id(db, author_id, fields=required_fields)
+        return author_obj
 
     @strawberry.field(permission_classes=[IsAuthenticated])
     async def book_list_admin(
@@ -40,15 +40,15 @@ class Query:
     ) -> List[BookAdmin]:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
-        books = BookSQLCrud.get_many_by_values(db, required_fields, q_filter=f)
-        return books
+        book_objs = BookSQLCrud.get_many_by_values(db, required_fields, q_filter=f)
+        return book_objs
 
     @strawberry.field(permission_classes=[IsAuthenticated])
     async def book_details_admin(self, info: Info, book_id: int) -> BookAdmin:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
-        author = BookSQLCrud.get_one_by_id(db, book_id, fields=required_fields)
-        return author
+        book_obj = BookSQLCrud.get_one_by_id(db, book_id, fields=required_fields)
+        return book_obj
 
 
 @strawberry.type
@@ -59,9 +59,9 @@ class Mutation:
         requester = get_requester(info)
         data_dict = data.asdict() | {"created_by": requester}
         validated_data = AuthorCreateValidator(**data_dict)
-        author = AuthorSQLCrud.create(db, validated_data)
+        author_obj = AuthorSQLCrud.create(db, validated_data)
         db.commit()
-        return author
+        return author_obj
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
     async def modify_author(
@@ -72,11 +72,11 @@ class Mutation:
         required_fields = info.selected_fields[0].selections
         data_dict = data.asdict() | {"last_updated_by": requester}
         validated_data = AuthorUpdateValidator(**data_dict)
-        author = AuthorSQLCrud.update_by_id(
+        author_obj = AuthorSQLCrud.update_by_id(
             db, validated_data, author_id, required_fields
         )
         db.commit()
-        return author
+        return author_obj
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
     async def remove_author(self, info: Info, author_id: int) -> bool:

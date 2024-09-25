@@ -19,15 +19,15 @@ class Query:
     ) -> List[AuthorBasic]:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
-        authors = AuthorSQLCrud.get_many_by_values(db, required_fields, q_filter=f)
-        return authors
+        author_objs = AuthorSQLCrud.get_many_by_values(db, required_fields, q_filter=f)
+        return author_objs
 
     @strawberry.field(permission_classes=[IsAuthenticated])
     async def author_details(self, info: Info, author_id: int) -> AuthorBasic:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
-        author = AuthorSQLCrud.get_one_by_id(db, author_id, fields=required_fields)
-        return author
+        author_obj = AuthorSQLCrud.get_one_by_id(db, author_id, fields=required_fields)
+        return author_obj
 
     @strawberry.field(permission_classes=[IsAuthenticated])
     async def book_list(
@@ -35,12 +35,12 @@ class Query:
     ) -> List[BookBasic]:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
-        books = BookSQLCrud.get_many_by_values(db, required_fields, q_filter=f)
-        return books
+        book_objs = BookSQLCrud.get_many_by_values(db, required_fields, q_filter=f)
+        return book_objs
 
     @strawberry.field(permission_classes=[IsAuthenticated])
     async def book_details(self, info: Info, book_id: int) -> BookBasic:
         db = info.context["db"]
         required_fields = info.selected_fields[0].selections
-        author = BookSQLCrud.get_one_by_id(db, book_id, fields=required_fields)
-        return author
+        book_obj = BookSQLCrud.get_one_by_id(db, book_id, fields=required_fields)
+        return book_obj
