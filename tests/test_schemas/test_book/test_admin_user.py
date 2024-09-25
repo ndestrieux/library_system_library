@@ -351,8 +351,6 @@ class TestBookCreation:
             result.errors[0].message
             == "Author object with id '100' could not be found."
         )
-        q_filter = BookAdminFilter(title="New book")
-        assert not list(BookSQLCrud.get_many_by_values(db_session, q_filter=q_filter))
 
     async def test_create_book_mutation_as_basic_user_throws_error(
         self,

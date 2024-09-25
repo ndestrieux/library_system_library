@@ -91,14 +91,10 @@ class Mutation:
         requester = get_requester(info)
         data_dict = data.asdict() | {"created_by": requester}
         validated_data = BookCreateValidator(**data_dict)
-        author_list = [
-            AuthorSQLCrud.get_one_by_id(db, author_id)
-            for author_id in validated_data.authors
-        ]
-        book = BookSQLCrud.create(db, validated_data)
-        book.authors += author_list
+        book_obj = BookSQLCrud.create(db, validated_data)
+        AuthorSQLCrud.create_relation(db, book_obj, validated_data.authors)
         db.commit()
-        return book
+        return book_obj
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, HasAdminGroup])
     async def modify_book(
