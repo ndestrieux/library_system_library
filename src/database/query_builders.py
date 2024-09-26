@@ -15,25 +15,24 @@ from filters.author import Filter
 
 
 class SQLQuery(ABC):
-    model = None
+    MODEL = None
+    POSSIBLE_FILTER_ARGS = ["obj_id", "q_filter"]
 
     def __new__(cls, *args, **kwargs):
-        kwargs_arr = kwargs.keys()
-        if "q_filter" in kwargs_arr and "obj_id" in kwargs_arr:
+        kwargs_arr = tuple(kwargs.keys())
+        if len(list(set(cls.POSSIBLE_FILTER_ARGS) & set(kwargs_arr))) > 1:
             raise AttributeError(
-                "Query filter and object ID cannot be both passed when building query."
+                f"Only one arg of '{kwargs_arr}' can be passed when building query."
             )
         return super().__new__(cls)
 
     def __init__(
         self,
-        model: BaseModel,
-        fields: List[SelectedField],
+        fields: Optional[List[SelectedField]] = None,
         *,
         obj_id: Optional[int] = None,
         q_filter: Optional[Filter] = None,
     ):
-        self.model = model
         self.fields = fields
         self.obj_id = obj_id
         self.q_filter = q_filter
@@ -74,11 +73,11 @@ class SQLQuery(ABC):
         return result
 
     def _build_options(self) -> List[strategy_options]:
-        load_attrs = self._get_model_field_objs(self.model, self.fields)
+        load_attrs = self._get_model_field_objs(self.MODEL, self.fields)
         options = [load_only(*load_attrs["fields"])]
         if load_attrs.get("related"):
             relationship_attr = getattr(
-                self.model, load_attrs.get("related")[0].get("name")
+                self.MODEL, load_attrs.get("related")[0].get("name")
             )
             relationship_fields = load_attrs.get("related")[0].get("fields")
             options += [joinedload(relationship_attr).load_only(*relationship_fields)]
@@ -96,7 +95,7 @@ class SQLQuery(ABC):
 
     def _build_filter_criteria(self) -> List[SQLCoreOperations]:
         if self.obj_id:
-            return [self.model.id.like(self.obj_id)]
+            return [self.MODEL.id.like(self.obj_id)]
         if not self.q_filter:
             return []
         criterion = []
@@ -107,16 +106,18 @@ class SQLQuery(ABC):
         return criterion
 
     def build(self) -> Select:
-        query = select(self.model)
-        options = self._build_options()
+        query = select(self.MODEL)
         subquery = self._build_filter_criteria()
         for j in self.joins:
             query = query.join(j)
-        return query.options(*options).filter(*subquery)
+        if self.fields:
+            options = self._build_options()
+            query = query.options(*options)
+        return query.filter(*subquery)
 
 
 class AuthorSQLQuery(SQLQuery):
-    model = AuthorModel
+    MODEL = AuthorModel
 
     @property
     def _get_filter_criteria(self):
@@ -125,6 +126,7 @@ class AuthorSQLQuery(SQLQuery):
             "middle_name": AuthorModel.middle_name.ilike,
             "last_name": AuthorModel.last_name.ilike,
             "book_title": BookModel.title.ilike,
+            "book_publication_year": BookModel.publication_year.like,
             "created_by": AuthorModel.created_by.ilike,
             "created_between": AuthorModel.created_on.between,
             "last_updated_by": AuthorModel.last_updated_by.ilike,
@@ -135,10 +137,45 @@ class AuthorSQLQuery(SQLQuery):
     def _get_related_fields(self):
         return [
             "book_title",
+            "book_publication_year",
         ]
 
     @property
     def _get_join(self):
         return {
             "book": AuthorModel.books,
+        }
+
+
+class BookSQLQuery(SQLQuery):
+    MODEL = BookModel
+
+    @property
+    def _get_filter_criteria(self):
+        return {
+            "title": BookModel.title.ilike,
+            "publication_year": BookModel.publication_year.like,
+            "language": BookModel.language.like,
+            "category": BookModel.category.ilike,
+            "created_by": BookModel.created_by.ilike,
+            "created_between": BookModel.created_on.between,
+            "last_updated_by": BookModel.last_updated_by.ilike,
+            "last_updated_between": BookModel.last_updated_on.between,
+            "author_first_name": AuthorModel.first_name.ilike,
+            "author_middle_name": AuthorModel.middle_name.ilike,
+            "author_last_name": AuthorModel.last_name.ilike,
+        }
+
+    @property
+    def _get_related_fields(self):
+        return [
+            "author_first_name",
+            "author_middle_name",
+            "author_last_name",
+        ]
+
+    @property
+    def _get_join(self):
+        return {
+            "author": BookModel.authors,
         }
