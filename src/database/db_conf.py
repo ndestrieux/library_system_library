@@ -5,7 +5,7 @@ from conf import get_settings
 
 DB_CHOICES = {
     "sqlite": f"sqlite:///./{get_settings().db_name}",
-    "postgresql": f"postgresql://{get_settings().db_username}:{get_settings().db_password}@{get_settings().db_name}/db",
+    "postgresql": f"postgresql://{get_settings().db_username}:{get_settings().db_password}@{get_settings().db_host}/{get_settings().db_name}",
 }
 
 DATABASE_URL = DB_CHOICES[get_settings().which_db]

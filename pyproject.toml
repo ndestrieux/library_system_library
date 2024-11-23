@@ -12,6 +12,7 @@ strawberry-graphql = {extras = ["fastapi"], version = "~0.234"}
 sqlalchemy = "~2.0"
 uvicorn = {extras = ["standard"], version = "~0.30"}
 pydantic-settings = "~2.2"
+psycopg2-binary = "~2.9"
 
 
 [tool.poetry.group.dev.dependencies]
