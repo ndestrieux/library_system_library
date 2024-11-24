@@ -4,8 +4,7 @@ ENV PYTHONDONTWRITEBYTECODE 1 \
     PYTHONUNBUFFERED 1
 ENV POETRY_CACHE_DIR=/tmp/poetry_cache
 
-COPY ./pyproject.toml ./poetry.lock /app/
-COPY ./src /app/
+COPY ./src ./pyproject.toml ./poetry.lock ./README.md /app/
 
 WORKDIR /app
 

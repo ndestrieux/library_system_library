@@ -12,10 +12,8 @@ RUN apt-get update \
 
 RUN pip install poetry
 
-COPY ./pyproject.toml ./poetry.lock /app/
+COPY ./src ./pyproject.toml ./poetry.lock ./README.md /app/
 COPY ./deployment/dev/scripts/ /scripts
-COPY ./src /app/
-COPY ./README.md /app/
 
 RUN poetry config virtualenvs.create false \
     && poetry install && \
