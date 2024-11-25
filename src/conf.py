@@ -5,11 +5,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
-    which_db: str
-    db_name: str
-    db_username: str = ""
-    db_password: str = ""
-    db_host: str = ""
+
+    WHICH_DB: str
+    DB_NAME: str
+    DB_USERNAME: str = ""
+    DB_PASSWORD: str = ""
+    DB_HOST: str = ""
 
 
 @lru_cache()
