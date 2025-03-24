@@ -1,0 +1,47 @@
+name: library
+services:
+  app:
+    build:
+      context: ../../
+      dockerfile: ./deployment/dev/Dockerfile
+    container_name: "library"
+    volumes:
+      - ../../src/:/app
+    ports:
+      - 8000:8000
+    env_file:
+      - .env
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:17
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    hostname: ${DB_HOST}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME}" ]
+      interval: 5s
+      timeout: 30s
+      retries: 6
+    restart: always
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true
+
+volumes:
+  pgdata:
+    driver: local
