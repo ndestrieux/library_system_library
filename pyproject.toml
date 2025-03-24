@@ -1,6 +1,7 @@
 [tool.poetry]
 name = "library"
 version = "0.1.0"
+package-mode = false
 description = ""
 authors = ["ndestrieux <n.destrieux@gmail.com>"]
 readme = "README.md"
@@ -8,11 +9,10 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "~3.12"
 fastapi = "~0.111"
-strawberry-graphql = {extras = ["fastapi"], version = "~0.234"}
 sqlalchemy = "~2.0"
 uvicorn = {extras = ["standard"], version = "~0.30"}
 pydantic-settings = "~2.2"
-psycopg2-binary = "~2.9"
+strawberry-graphql = {extras = ["fastapi"], version = "~0.262"}
 
 
 [tool.poetry.group.dev.dependencies]
@@ -39,4 +39,4 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 addopts = "-v -ra -q"
 minversion = "6.0"
-filterwarnings = ["ignore:'typing.ByteString' is deprecated and slated for removal in Python 3.14"]
+filterwarnings = ["ignore:'typing.ByteString' is deprecated and slated for removal in Python 3.14", "ignore:Please use `import python_multipart` instead."]
