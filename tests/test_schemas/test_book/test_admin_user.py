@@ -84,7 +84,12 @@ class TestBookListAdmin:
         }"""
 
     async def test_book_list_admin_query_as_admin_user_returns_correct_fields(
-        self, populate_db, request_obj, test_schema, book_list_admin_query
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        book_list_admin_query,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             book_list_admin_query, context_value={"request": request_obj}
@@ -110,7 +115,12 @@ class TestBookListAdmin:
         )
 
     async def test_book_list_admin_query_as_admin_user_without_filter(
-        self, populate_db, request_obj, test_schema, book_list_admin_query
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        book_list_admin_query,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             book_list_admin_query, context_value={"request": request_obj}
@@ -119,7 +129,12 @@ class TestBookListAdmin:
         assert len(result.data["bookListAdmin"]) == 3
 
     async def test_book_list_admin_query_as_admin_user_with_filter(
-        self, populate_db, request_obj, test_schema, book_list_admin_query_with_filter
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        book_list_admin_query_with_filter,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             book_list_admin_query_with_filter, context_value={"request": request_obj}
@@ -132,13 +147,14 @@ class TestBookListAdmin:
     async def test_book_list_admin_query_as_admin_user_with_creation_date_filter(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         test_schema,
         book_list_admin_query_with_filter_on_creation_date,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             book_list_admin_query_with_filter_on_creation_date,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert not result.errors
         assert len(result.data["bookListAdmin"]) == 1
@@ -195,7 +211,12 @@ class TestBookDetailsAdmin:
         }"""
 
     async def test_book_details_query_as_admin_user_returns_correct_fields(
-        self, populate_db, request_obj, test_schema, book_details_admin_query
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        book_details_admin_query,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             book_details_admin_query, context_value={"request": request_obj}
@@ -221,7 +242,12 @@ class TestBookDetailsAdmin:
         )
 
     async def test_book_details_query_as_admin_user(
-        self, populate_db, request_obj, test_schema, book_details_admin_query
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        book_details_admin_query,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             book_details_admin_query, context_value={"request": request_obj}
@@ -230,7 +256,12 @@ class TestBookDetailsAdmin:
         assert result.data["bookDetailsAdmin"]["id"] == 1
 
     async def test_book_details_as_admin_user_when_entry_does_not_exist(
-        self, populate_db, request_obj, test_schema, book_details_admin_query_wrong_id
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        book_details_admin_query_wrong_id,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             book_details_admin_query_wrong_id, context_value={"request": request_obj}
@@ -287,12 +318,17 @@ class TestBookCreation:
         }"""
 
     async def test_create_book_mutation(
-        self, populate_db, admin_request_obj, graphql_create_book_mutation, test_schema
+        self,
+        populate_db,
+        request_obj,
+        graphql_create_book_mutation,
+        test_schema,
+        mock_decode_jwt_admin,
     ):
         with freeze_time(date(2024, 4, 1)):
             result = await test_schema.execute(
                 graphql_create_book_mutation,
-                context_value={"request": admin_request_obj},
+                context_value={"request": request_obj},
             )
         assert not result.errors
         assert result.data["newBook"] == {
@@ -309,7 +345,7 @@ class TestBookCreation:
             "publicationYear": 1977,
             "language": "LanguageChoices.EN",
             "category": "Fantasy",
-            "createdBy": "admin",
+            "createdBy": "test_admin",
             "createdOn": "2024-04-01",
             "lastUpdatedBy": None,
             "lastUpdatedOn": None,
@@ -318,15 +354,16 @@ class TestBookCreation:
     async def test_create_book_mutation_without_related_author_id(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_create_book_mutation_without_related_author_id,
         test_schema,
         db_session,
+        mock_decode_jwt_admin,
     ):
         with freeze_time(date(2024, 4, 1)):
             result = await test_schema.execute(
                 graphql_create_book_mutation_without_related_author_id,
-                context_value={"request": admin_request_obj},
+                context_value={"request": request_obj},
             )
         assert result.errors
         assert "validation error" in result.errors[0].message
@@ -336,15 +373,16 @@ class TestBookCreation:
     async def test_create_book_mutation_with_related_author_id_that_does_not_exist(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_create_book_mutation_with_a_related_author_id_that_does_not_exist,
         test_schema,
         db_session,
+        mock_decode_jwt_admin,
     ):
         with freeze_time(date(2024, 4, 1)):
             result = await test_schema.execute(
                 graphql_create_book_mutation_with_a_related_author_id_that_does_not_exist,
-                context_value={"request": admin_request_obj},
+                context_value={"request": request_obj},
             )
         assert result.errors
         assert (
@@ -358,6 +396,7 @@ class TestBookCreation:
         test_schema,
         graphql_create_book_mutation,
         no_admin_permission_error,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             graphql_create_book_mutation, context_value={"request": request_obj}
@@ -449,14 +488,15 @@ class TestBookUpdate:
     async def test_book_update_mutation(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_update_book_mutation,
         test_schema,
+        mock_decode_jwt_admin,
     ):
         with freeze_time(date(2024, 5, 1)):
             result = await test_schema.execute(
                 graphql_update_book_mutation,
-                context_value={"request": admin_request_obj},
+                context_value={"request": request_obj},
             )
         assert not result.errors
         assert result.data["modifyBook"] == {
@@ -473,36 +513,38 @@ class TestBookUpdate:
             "publicationYear": 1937,
             "language": "LanguageChoices.EN",
             "category": "Fantasy",
-            "createdBy": "admin",
+            "createdBy": "test_admin",
             "createdOn": "2024-03-01",
-            "lastUpdatedBy": "admin",
+            "lastUpdatedBy": "test_admin",
             "lastUpdatedOn": "2024-05-01",
         }
 
     async def test_update_book_mutation_when_book_id_does_not_exist(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_update_book_mutation_wrong_id,
         test_schema,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             graphql_update_book_mutation_wrong_id,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert result.errors
 
     async def test_update_book_mutation_when_adding_author(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_update_book_mutation_add_author,
         test_schema,
         db_session,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             graphql_update_book_mutation_add_author,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert not result.errors
         author_obj = AuthorSQLCrud.get_one_by_id(db_session, 3)
@@ -512,14 +554,15 @@ class TestBookUpdate:
     async def test_update_book_mutation_when_removing_author_and_there_is_more_than_one_remaining_author(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_update_book_mutation_add_author_remove_another,
         test_schema,
         db_session,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             graphql_update_book_mutation_add_author_remove_another,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert not result.errors
         assert len(BookSQLCrud.get_one_by_id(db_session, 1).authors) > 0
@@ -527,39 +570,42 @@ class TestBookUpdate:
     async def test_update_book_mutation_when_removing_the_sole_related_author(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_update_book_mutation_remove_unique_author,
         test_schema,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             graphql_update_book_mutation_remove_unique_author,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert result.errors
 
     async def test_update_book_mutation_when_removing_author_that_does_not_exist(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_update_book_mutation_remove_author_that_does_not_exist,
         test_schema,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             graphql_update_book_mutation_remove_author_that_does_not_exist,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert not result.errors
 
     async def test_update_book_mutation_when_removing_author_that_is_not_related_to_book_object(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_update_book_mutation_remove_author_that_is_not_related_to_book_object,
         test_schema,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             graphql_update_book_mutation_remove_author_that_is_not_related_to_book_object,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert not result.errors
 
@@ -569,6 +615,7 @@ class TestBookUpdate:
         test_schema,
         graphql_update_book_mutation,
         no_admin_permission_error,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             graphql_update_book_mutation, context_value={"request": request_obj}
@@ -593,25 +640,27 @@ class TestAuthorDelete:
     async def test_delete_book_mutation(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_delete_book_mutation,
         test_schema,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
-            graphql_delete_book_mutation, context_value={"request": admin_request_obj}
+            graphql_delete_book_mutation, context_value={"request": request_obj}
         )
         assert result.data["removeBook"]
 
     async def test_delete_book_mutation_when_book_id_does_not_exist(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_delete_book_mutation_wrong_id,
         test_schema,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             graphql_delete_book_mutation_wrong_id,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert not result.data["removeBook"]
 
@@ -621,6 +670,7 @@ class TestAuthorDelete:
         test_schema,
         graphql_delete_book_mutation,
         no_admin_permission_error,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             graphql_delete_book_mutation, context_value={"request": request_obj}

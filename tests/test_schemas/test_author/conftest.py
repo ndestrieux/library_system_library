@@ -11,16 +11,16 @@ from src.database.crud_factory import AuthorSQLCrud
 def author_validated_data_list():
     return [
         AuthorCreateValidator(
-            first_name="Dale", last_name="Cooper", created_by="admin"
+            first_name="Dale", last_name="Cooper", created_by="test_admin"
         ),
         AuthorCreateValidator(
-            first_name="Gordon", last_name="Cole", created_by="admin"
+            first_name="Gordon", last_name="Cole", created_by="test_admin"
         ),
         AuthorCreateValidator(
             first_name="John",
             middle_name="Ronald Reuel",
             last_name="Tolkien",
-            created_by="admin",
+            created_by="test_admin",
         ),
     ]
 

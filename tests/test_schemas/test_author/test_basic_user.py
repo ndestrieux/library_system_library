@@ -33,7 +33,12 @@ class TestAuthorList:
         }"""
 
     async def test_author_list_query_returns_correct_fields(
-        self, populate_db, request_obj, test_schema, author_list_query
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        author_list_query,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             author_list_query, context_value={"request": request_obj}
@@ -47,7 +52,12 @@ class TestAuthorList:
         )
 
     async def test_author_list_query_as_basic_user_without_filter(
-        self, populate_db, request_obj, test_schema, author_list_query
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        author_list_query,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             author_list_query, context_value={"request": request_obj}
@@ -56,7 +66,12 @@ class TestAuthorList:
         assert len(result.data["authorList"]) == 3
 
     async def test_author_list_query_as_basic_user_with_filter(
-        self, populate_db, request_obj, test_schema, author_list_query_with_filter
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        author_list_query_with_filter,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             author_list_query_with_filter, context_value={"request": request_obj}
@@ -93,7 +108,12 @@ class TestAuthorDetails:
         }"""
 
     async def test_author_details_query_returns_correct_fields(
-        self, populate_db, request_obj, test_schema, author_details_query
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        author_details_query,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             author_details_query, context_value={"request": request_obj}
@@ -107,7 +127,12 @@ class TestAuthorDetails:
         )
 
     async def test_author_details_query_as_basic_user(
-        self, populate_db, request_obj, test_schema, author_details_query
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        author_details_query,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             author_details_query, context_value={"request": request_obj}
@@ -116,7 +141,12 @@ class TestAuthorDetails:
         assert result.data["authorDetails"]["id"] == 1
 
     async def test_author_details_as_basic_user_when_entry_does_not_exist(
-        self, populate_db, request_obj, test_schema, author_details_query_wrong_id
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        author_details_query_wrong_id,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             author_details_query_wrong_id, context_value={"request": request_obj}

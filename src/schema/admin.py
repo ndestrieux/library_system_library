@@ -34,7 +34,7 @@ class Query:
         author_obj = AuthorSQLCrud.get_one_by_id(db, author_id, fields=required_fields)
         return author_obj
 
-    @strawberry.field(permission_classes=[IsAuthenticated])
+    @strawberry.field(permission_classes=[IsAuthenticated, HasAdminGroup])
     async def book_list_admin(
         self, info: Info, f: Optional[BookAdminFilter] = None
     ) -> List[BookAdmin]:

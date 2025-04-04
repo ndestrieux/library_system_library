@@ -3,21 +3,27 @@ from typing import Any
 from strawberry import Info
 from strawberry.permission import BasePermission
 
-from utils import get_requester, get_requester_groups
+from jwt_token_manager import JWTToken
 
 
 class IsAuthenticated(BasePermission):
     message = "User is not authenticated"
 
     async def has_permission(self, source: Any, info: Info, **kwargs) -> bool:
-        return bool(get_requester(info))
+        request = info.context["request"]
+        authentication = request.headers.get("authentication")
+        if authentication:
+            token = authentication.split()[-1]
+            auth_result = JWTToken.decode(token)
+            info.context["requester_data"] = auth_result.model_dump()
+            return True
+        return False
 
 
 class HasAdminGroup(BasePermission):
     message = "User is not admin"
 
     async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
-        requester_groups = get_requester_groups(info)
-        if requester_groups:
-            return "admin" in get_requester_groups(info)
+        if "admin" in info.context["requester_data"]["groups"]:
+            return True
         return False
