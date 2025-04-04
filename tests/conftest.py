@@ -1,10 +1,12 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from starlette.datastructures import Headers
 from starlette.requests import Request
 from strawberry.extensions import SchemaExtension
 
 from database.models import Base
+from jwt_token_manager import RequesterData
 from src.permissions import HasAdminGroup
 
 
@@ -63,46 +65,42 @@ def override_sqlalchemy_session(db_session):
 
 
 @pytest.fixture(scope="session")
-def request_headers():
-    """Request headers for basic user"""
-    return {
-        "requester": "user",
-    }
-
-
-@pytest.fixture(scope="session")
-def request_obj(request_headers):
+def request_obj():
     """Create request object coming from basic user"""
     request = Request(
         {
             "type": "http",
+            "headers": Headers({"authentication": "Bearer fake_secret"}).raw,
         }
     )
-    request._headers = request_headers
     return request
+
+
+@pytest.fixture(scope="session")
+def request_headers():
+    """Request headers for basic user"""
+    return RequesterData(name="test_user", groups=["basic"])
 
 
 @pytest.fixture(scope="session")
 def admin_request_headers():
     """Request headers for admin user"""
-    return {
-        "requester": "admin",
-        "groups": [
+    return RequesterData(
+        name="test_admin",
+        groups=[
             "admin",
         ],
-    }
-
-
-@pytest.fixture(scope="session")
-def admin_request_obj(admin_request_headers):
-    """Create request object coming from admin user"""
-    request = Request(
-        {
-            "type": "http",
-        }
     )
-    request._headers = admin_request_headers
-    return request
+
+
+@pytest.fixture
+def mock_decode_jwt_basic(mocker, request_headers):
+    mocker.patch("permissions.JWTToken.decode", return_value=request_headers)
+
+
+@pytest.fixture
+def mock_decode_jwt_admin(mocker, admin_request_headers):
+    mocker.patch("permissions.JWTToken.decode", return_value=admin_request_headers)
 
 
 @pytest.fixture(scope="session")

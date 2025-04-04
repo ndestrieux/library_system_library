@@ -61,10 +61,15 @@ class TestAuthorListAdmin:
         }"""
 
     async def test_author_list_admin_query_returns_correct_fields(
-        self, populate_db, admin_request_obj, test_schema, author_list_admin_query
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        author_list_admin_query,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
-            author_list_admin_query, context_value={"request": admin_request_obj}
+            author_list_admin_query, context_value={"request": request_obj}
         )
         assert not result.errors
         assert tuple(result.data["authorListAdmin"][0].keys()) == (
@@ -79,10 +84,15 @@ class TestAuthorListAdmin:
         )
 
     async def test_author_list_admin_query_as_admin_user_without_filter(
-        self, populate_db, admin_request_obj, test_schema, author_list_admin_query
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        author_list_admin_query,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
-            author_list_admin_query, context_value={"request": admin_request_obj}
+            author_list_admin_query, context_value={"request": request_obj}
         )
         assert not result.errors
         assert len(result.data["authorListAdmin"]) == 3
@@ -90,13 +100,14 @@ class TestAuthorListAdmin:
     async def test_author_list_admin_query_as_admin_user_with_filter(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         test_schema,
         author_list_admin_query_with_filter,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             author_list_admin_query_with_filter,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert not result.errors
         assert len(result.data["authorListAdmin"]) == 2
@@ -106,13 +117,14 @@ class TestAuthorListAdmin:
     async def test_author_list_admin_query_as_admin_user_with_creation_date_filter(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         test_schema,
         author_list_admin_query_with_filter_on_creation_date,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             author_list_admin_query_with_filter_on_creation_date,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert not result.errors
         assert len(result.data["authorListAdmin"]) == 1
@@ -128,6 +140,7 @@ class TestAuthorListAdmin:
         test_schema,
         author_list_admin_query,
         no_admin_permission_error,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             author_list_admin_query, context_value={"request": request_obj}
@@ -170,10 +183,15 @@ class TestAuthorDetails:
         }"""
 
     async def test_author_details_admin_query_returns_correct_fields(
-        self, populate_db, admin_request_obj, test_schema, author_details_admin_query
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        author_details_admin_query,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
-            author_details_admin_query, context_value={"request": admin_request_obj}
+            author_details_admin_query, context_value={"request": request_obj}
         )
         assert not result.errors
         assert tuple(result.data["authorDetailsAdmin"].keys()) == (
@@ -188,10 +206,15 @@ class TestAuthorDetails:
         )
 
     async def test_author_details_query_as_admin_user(
-        self, populate_db, admin_request_obj, test_schema, author_details_admin_query
+        self,
+        populate_db,
+        request_obj,
+        test_schema,
+        author_details_admin_query,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
-            author_details_admin_query, context_value={"request": admin_request_obj}
+            author_details_admin_query, context_value={"request": request_obj}
         )
         assert not result.errors
         assert result.data["authorDetailsAdmin"]["id"] == 1
@@ -199,13 +222,14 @@ class TestAuthorDetails:
     async def test_author_details_as_admin_user_when_author_id_does_not_exist(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         test_schema,
         author_details_admin_query_wrong_id,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             author_details_admin_query_wrong_id,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert result.errors
 
@@ -215,6 +239,7 @@ class TestAuthorDetails:
         test_schema,
         author_details_admin_query,
         no_admin_permission_error,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             author_details_admin_query, context_value={"request": request_obj}
@@ -241,12 +266,17 @@ class TestAuthorCreation:
         }"""
 
     async def test_create_author_mutation(
-        self, admin_request_obj, graphql_create_author_mutation, test_schema
+        self,
+        request_obj,
+        graphql_create_author_mutation,
+        test_schema,
+        admin_request_headers,
+        mock_decode_jwt_admin,
     ):
         with freeze_time(date(2024, 4, 1)):
             result = await test_schema.execute(
                 graphql_create_author_mutation,
-                context_value={"request": admin_request_obj},
+                context_value={"request": request_obj},
             )
         assert not result.errors
         assert result.data["newAuthor"] == {
@@ -254,7 +284,7 @@ class TestAuthorCreation:
             "firstName": "Dale",
             "middleName": None,
             "lastName": "Cooper",
-            "createdBy": "admin",
+            "createdBy": admin_request_headers.name,
             "createdOn": "2024-04-01",
             "lastUpdatedBy": None,
             "lastUpdatedOn": None,
@@ -266,6 +296,7 @@ class TestAuthorCreation:
         test_schema,
         graphql_create_author_mutation,
         no_admin_permission_error,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             graphql_create_author_mutation, context_value={"request": request_obj}
@@ -303,14 +334,16 @@ class TestAuthorUpdate:
     async def test_author_update_mutation(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_update_author_mutation,
         test_schema,
+        admin_request_headers,
+        mock_decode_jwt_admin,
     ):
         with freeze_time(date(2024, 5, 1)):
             result = await test_schema.execute(
                 graphql_update_author_mutation,
-                context_value={"request": admin_request_obj},
+                context_value={"request": request_obj},
             )
         assert not result.errors
         assert result.data["modifyAuthor"] == {
@@ -318,22 +351,23 @@ class TestAuthorUpdate:
             "firstName": "J.R.R.",
             "middleName": None,
             "lastName": "Tolkien",
-            "createdBy": "admin",
+            "createdBy": "test_admin",
             "createdOn": "2024-03-01",
-            "lastUpdatedBy": "admin",
+            "lastUpdatedBy": admin_request_headers.name,
             "lastUpdatedOn": "2024-05-01",
         }
 
     async def test_update_author_mutation_when_author_id_does_not_exist(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_update_author_mutation_wrong_id,
         test_schema,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             graphql_update_author_mutation_wrong_id,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert result.errors
 
@@ -343,6 +377,7 @@ class TestAuthorUpdate:
         test_schema,
         graphql_update_author_mutation,
         no_admin_permission_error,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             graphql_update_author_mutation, context_value={"request": request_obj}
@@ -367,25 +402,27 @@ class TestAuthorDelete:
     async def test_delete_author_mutation(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_delete_author_mutation,
         test_schema,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
-            graphql_delete_author_mutation, context_value={"request": admin_request_obj}
+            graphql_delete_author_mutation, context_value={"request": request_obj}
         )
         assert result.data["removeAuthor"]
 
     async def test_delete_author_mutation_when_author_id_does_not_exist(
         self,
         populate_db,
-        admin_request_obj,
+        request_obj,
         graphql_delete_author_mutation_wrong_id,
         test_schema,
+        mock_decode_jwt_admin,
     ):
         result = await test_schema.execute(
             graphql_delete_author_mutation_wrong_id,
-            context_value={"request": admin_request_obj},
+            context_value={"request": request_obj},
         )
         assert not result.data["removeAuthor"]
 
@@ -395,6 +432,7 @@ class TestAuthorDelete:
         test_schema,
         graphql_delete_author_mutation,
         no_admin_permission_error,
+        mock_decode_jwt_basic,
     ):
         result = await test_schema.execute(
             graphql_delete_author_mutation, context_value={"request": request_obj}

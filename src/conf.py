@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     DB_USERNAME: str = ""
     DB_PASSWORD: str = ""
     DB_HOST: str = ""
+    JWT_SECRET: str
+    JWT_ALG: str
 
 
 @lru_cache()

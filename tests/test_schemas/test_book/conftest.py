@@ -19,16 +19,16 @@ def selected_fields():
 def author_validated_data_list():
     return [
         AuthorCreateValidator(
-            first_name="Bram", last_name="Stoker", created_by="admin"
+            first_name="Bram", last_name="Stoker", created_by="test_admin"
         ),
         AuthorCreateValidator(
-            first_name="Louis-Ferdinand", last_name="Céline", created_by="admin"
+            first_name="Louis-Ferdinand", last_name="Céline", created_by="test_admin"
         ),
         AuthorCreateValidator(
             first_name="John",
             middle_name="Ronald Reuel",
             last_name="Tolkien",
-            created_by="admin",
+            created_by="test_admin",
         ),
     ]
 
@@ -42,7 +42,7 @@ def book_data_list(db_session):
             "publication_year": 1897,
             "language": LanguageChoices.EN,
             "category": "Horror",
-            "created_by": "admin",
+            "created_by": "test_admin",
         },
         {
             "title": "Voyage au bout de la nuit",
@@ -50,7 +50,7 @@ def book_data_list(db_session):
             "publication_year": 1932,
             "language": LanguageChoices.FR,
             "category": "Novel",
-            "created_by": "admin",
+            "created_by": "test_admin",
         },
         {
             "title": "The Hobbit",
@@ -58,7 +58,7 @@ def book_data_list(db_session):
             "publication_year": 1937,
             "language": LanguageChoices.EN,
             "category": "Fantasy",
-            "created_by": "admin",
+            "created_by": "test_admin",
         },
     ]
 

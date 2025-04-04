@@ -13,15 +13,19 @@ sqlalchemy = "~2.0"
 uvicorn = {extras = ["standard"], version = "~0.30"}
 pydantic-settings = "~2.2"
 strawberry-graphql = {extras = ["fastapi"], version = "~0.262"}
+pyjwt = "~2.10"
+psycopg2-binary = "~2.9"
 
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
 isort = "*"
 pre-commit = "~3.7"
-pytest = "~8.2"
+pytest = "~8.3"
 pytest-asyncio = "~0.23"
 freezegun = "~1.5"
+pytest-env = "~1.1"
+pytest-mock = "~3.14"
 
 [build-system]
 requires = ["poetry-core"]
@@ -40,3 +44,11 @@ asyncio_mode = "auto"
 addopts = "-v -ra -q"
 minversion = "6.0"
 filterwarnings = ["ignore:'typing.ByteString' is deprecated and slated for removal in Python 3.14", "ignore:Please use `import python_multipart` instead."]
+env = [
+    "WHICH_DB=sqlite",
+    "DB_NAME=test_library.sqlite3",
+    "DB_USERNAME=test_user",
+    "DB_PASSWORD=test_pass",
+    "JWT_SECRET=test_secret",
+    "JWT_ALG=HS256",
+]
