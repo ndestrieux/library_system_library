@@ -264,4 +264,8 @@ pyrightconfig.json
 # Local sqlite3 databases
 *.sqlite3
 
+# Helm secrets
+*.yaml.dec
+*.yml.dec
+
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm+all
